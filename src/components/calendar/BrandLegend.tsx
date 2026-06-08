@@ -10,11 +10,13 @@ export function BrandLegend({
   brands,
   hiddenBrands,
   onToggle,
+  canWrite,
   onAddBrand,
 }: {
   brands: Brand[];
   hiddenBrands: Set<string>;
   onToggle: (brandId: string) => void;
+  canWrite: boolean;
   onAddBrand: () => void;
 }) {
   return (
@@ -39,13 +41,15 @@ export function BrandLegend({
             </button>
           );
         })}
-        <button
-          type="button"
-          onClick={onAddBrand}
-          className="inline-flex items-center gap-[5px] rounded-[20px] border border-dashed border-line bg-white px-[11px] py-[5px] text-[12.5px] text-muted transition-colors hover:border-[#cfcbc0]"
-        >
-          <Plus size={13} /> Brand
-        </button>
+        {canWrite && (
+          <button
+            type="button"
+            onClick={onAddBrand}
+            className="inline-flex items-center gap-[5px] rounded-[20px] border border-dashed border-line bg-white px-[11px] py-[5px] text-[12.5px] text-muted transition-colors hover:border-[#cfcbc0]"
+          >
+            <Plus size={13} /> Brand
+          </button>
+        )}
       </div>
       <div className="flex gap-3.5 text-xs text-muted2">
         <span className="inline-flex items-center gap-1.5">

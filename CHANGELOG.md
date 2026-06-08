@@ -3,6 +3,50 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## 0.5.0 — Cycle 5: Auth + RLS financial gating
+
+Real authentication and server-enforced financial access control.
+
+### Added
+
+- **Profiles + roles** (`0002_auth.sql`): `profiles` (role `admin`/`member`/
+  `external` + `can_see_financials`), a trigger that auto-creates a profile per
+  `auth.users`, and SECURITY DEFINER helpers (`is_admin`, `is_staff`,
+  `has_financial_access`).
+- **Financials boundary** (`0003_financials.sql`): `leads`/`pipeline` moved off
+  `campaigns` into a separate `campaign_financials` table (seed values migrated;
+  a trigger auto-creates a 0/0 row per new campaign).
+- **RLS** (`0003` + `0004_rls.sql`) on every table: content readable by any
+  authenticated user, writes for staff; `campaign_financials` SELECT only with
+  financial access, writes admin-only; `profiles` self-read + admin-manage;
+  anonymous denied.
+- **Auth flow** (`@supabase/ssr`): `middleware.ts` refreshes the session and
+  redirects unauthenticated users to `/login`; a `/login` page and a `signOut`
+  action. Public signup disabled (invite + SQL bootstrap).
+- **Auth helpers** (`src/lib/auth.ts`): `getCurrentProfile`, `requireStaff`,
+  `requireAdmin`, `entitledToFinancials`.
+- **Admin Team view** (`/team`, admin-only): set roles + toggle
+  `can_see_financials` via admin-only Server Actions.
+
+### Changed
+
+- `getHomeData()` is role-aware: content for everyone; financials fetched +
+  merged only when entitled (RLS denies the rows otherwise). The hardcoded
+  `canSeeFinancials` is replaced by the session-derived value.
+- App bar shows the real user + role + sign-out (and a Team link for admins),
+  replacing the prototype's fake switcher. Write affordances (+buttons, drawer
+  edit/delete) are hidden for `external`.
+- Every mutating Server Action now verifies the caller's role server-side
+  (staff for content; admin for role changes) — defense in depth atop RLS.
+- `Role` type is now `admin`/`member`/`external`; `Profile` type added.
+
+### Security
+
+Financial data is absent from the server response for unentitled callers — RLS
+SELECT denies it, verified with real per-role sessions (member without the flag
+and external both receive zero financial rows; granting the flag makes them
+appear).
+
 ## 0.4.0 — Cycle 4: CRUD + searchable pickers + orphan adoption + global search
 
 The read-only home screen becomes a working editor, persisted to Supabase.

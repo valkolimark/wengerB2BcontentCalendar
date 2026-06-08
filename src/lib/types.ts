@@ -2,7 +2,17 @@
 // Field names mirror the database columns (snake_case) so rows fetched from
 // Supabase map onto these types directly.
 
-export type Role = "admin" | "viewer" | "jmc";
+// admin — full read incl. financials, full write, manages roles.
+// member — internal staff: read + write content; financials only if granted.
+// external — read-only, fully scrubbed (no financials, no write affordances).
+export type Role = "admin" | "member" | "external";
+
+export type Profile = {
+  id: string;
+  email: string | null;
+  role: Role;
+  can_see_financials: boolean;
+};
 
 // Drawer selection — shared across the calendar, cards, and drawer.
 export type Selected = { kind: "initiative" | "campaign"; id: string } | null;

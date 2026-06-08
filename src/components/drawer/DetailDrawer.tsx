@@ -37,6 +37,7 @@ export function DetailDrawer({
   campaigns,
   today,
   canSeeFinancials,
+  canWrite,
   onSelect,
   onClose,
   onEdit,
@@ -48,6 +49,7 @@ export function DetailDrawer({
   campaigns: CampaignWithEvents[];
   today: Date;
   canSeeFinancials: boolean;
+  canWrite: boolean;
   onSelect: (sel: OpenSelection) => void;
   onClose: () => void;
   onEdit: () => void;
@@ -109,6 +111,7 @@ export function DetailDrawer({
             onCopy={doCopy}
             onSelect={onSelect}
             onClose={onClose}
+            canWrite={canWrite}
             onEdit={onEdit}
             onDelete={onDelete}
           />
@@ -122,6 +125,7 @@ export function DetailDrawer({
             canSeeFinancials={canSeeFinancials}
             onSelect={onSelect}
             onClose={onClose}
+            canWrite={canWrite}
             onEdit={onEdit}
             onDelete={onDelete}
           />
@@ -171,6 +175,7 @@ function CampaignBody({
   brand,
   parent,
   canSeeFinancials,
+  canWrite,
   copied,
   onCopy,
   onSelect,
@@ -182,6 +187,7 @@ function CampaignBody({
   brand: Brand | undefined;
   parent: Initiative | null;
   canSeeFinancials: boolean;
+  canWrite: boolean;
   copied: boolean;
   onCopy: (t: string) => void;
   onSelect: (sel: OpenSelection) => void;
@@ -216,12 +222,16 @@ function CampaignBody({
           {brand?.label ?? campaign.brand_id}
         </div>
         <div className="flex gap-0.5">
-          <IconBtn label="Edit campaign" onClick={onEdit}>
-            <Pencil size={15} />
-          </IconBtn>
-          <IconBtn label="Delete campaign" onClick={onDelete}>
-            <Trash2 size={15} />
-          </IconBtn>
+          {canWrite && (
+            <>
+              <IconBtn label="Edit campaign" onClick={onEdit}>
+                <Pencil size={15} />
+              </IconBtn>
+              <IconBtn label="Delete campaign" onClick={onDelete}>
+                <Trash2 size={15} />
+              </IconBtn>
+            </>
+          )}
           <IconBtn label="Close" onClick={onClose}>
             <X size={18} />
           </IconBtn>
@@ -310,6 +320,7 @@ function InitiativeBody({
   brandMap,
   today,
   canSeeFinancials,
+  canWrite,
   onSelect,
   onClose,
   onEdit,
@@ -320,6 +331,7 @@ function InitiativeBody({
   brandMap: Record<string, Brand>;
   today: Date;
   canSeeFinancials: boolean;
+  canWrite: boolean;
   onSelect: (sel: OpenSelection) => void;
   onClose: () => void;
   onEdit: () => void;
@@ -344,12 +356,16 @@ function InitiativeBody({
             : bs[0]?.label ?? "Initiative"}
         </div>
         <div className="flex gap-0.5">
-          <IconBtn label="Edit initiative" onClick={onEdit}>
-            <Pencil size={15} />
-          </IconBtn>
-          <IconBtn label="Delete initiative" onClick={onDelete}>
-            <Trash2 size={15} />
-          </IconBtn>
+          {canWrite && (
+            <>
+              <IconBtn label="Edit initiative" onClick={onEdit}>
+                <Pencil size={15} />
+              </IconBtn>
+              <IconBtn label="Delete initiative" onClick={onDelete}>
+                <Trash2 size={15} />
+              </IconBtn>
+            </>
+          )}
           <IconBtn label="Close" onClick={onClose}>
             <X size={18} />
           </IconBtn>

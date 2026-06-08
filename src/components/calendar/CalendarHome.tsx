@@ -2,16 +2,18 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Plus } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck, Plus, LogOut, Users } from "lucide-react";
 import type {
   Brand,
   CalendarEvent,
   CampaignWithEvents,
   Initiative,
+  Role,
   Selected,
 } from "@/lib/types";
 import { parseISO } from "@/lib/dates";
-import { deleteCampaign, deleteInitiative } from "@/lib/actions";
+import { deleteCampaign, deleteInitiative, signOut } from "@/lib/actions";
 import { Toolbar } from "./Toolbar";
 import { BrandLegend } from "./BrandLegend";
 import { MonthView } from "./MonthView";
@@ -33,26 +35,37 @@ type ModalState =
   | { type: "campaign"; editId?: string; presetInitiative?: string }
   | null;
 
-// No auth yet — financials show for everyone. Cycle 5 wires this to RLS.
-const canSeeFinancials = true;
-
 // Default to June 2026, where the seed lives, so the calendar shows populated
 // on first load. The Today button jumps to the real current month.
 const DEFAULT_CURSOR = new Date(2026, 5, 1);
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
+const ROLE_LABEL: Record<Role, string> = {
+  admin: "Admin",
+  member: "Member",
+  external: "External",
+};
+
 export function CalendarHome({
   brands,
   initiatives,
   campaigns,
   todayKey,
+  role,
+  canSeeFinancials,
+  userEmail,
 }: {
   brands: Brand[];
   initiatives: Initiative[];
   campaigns: CampaignWithEvents[];
   todayKey: string;
+  role: Role;
+  canSeeFinancials: boolean;
+  userEmail: string | null;
 }) {
+  // External users are read-only; admin/member can write content.
+  const canWrite = role !== "external";
   const router = useRouter();
   const [view, setView] = useState<CalendarView>("month");
   const [cursor, setCursor] = useState<Date>(DEFAULT_CURSOR);
@@ -217,10 +230,35 @@ export function CalendarHome({
             <div className="text-[11px] text-muted2">Wenger B2B · 2026</div>
           </div>
         </div>
-        {/* Role display is a placeholder until Auth lands in Cycle 5. */}
-        <div className="flex items-center gap-[7px] rounded-[9px] border border-hair bg-[#f4f2ec] px-2.5 py-[5px] text-[13px] font-medium text-muted">
-          <ShieldCheck size={15} />
-          Admin · Mark
+        <div className="flex items-center gap-2">
+          {role === "admin" && (
+            <Link
+              href="/team"
+              className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-white px-2.5 py-[6px] text-[13px] font-medium transition-colors hover:bg-[#f2f0ea]"
+            >
+              <Users size={14} /> Team
+            </Link>
+          )}
+          <div
+            className="flex items-center gap-[7px] rounded-[9px] border border-hair bg-[#f4f2ec] px-2.5 py-[5px] text-[13px] font-medium text-muted"
+            title={userEmail ?? undefined}
+          >
+            <ShieldCheck size={15} />
+            <span className="max-w-[180px] truncate">{userEmail ?? "Signed in"}</span>
+            <span className="rounded-md bg-white px-1.5 py-px text-[11px] text-muted2">
+              {ROLE_LABEL[role]}
+            </span>
+          </div>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="flex size-8 items-center justify-center rounded-lg border border-line bg-white text-[#4a4a45] transition-colors hover:bg-[#f2f0ea]"
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut size={15} />
+            </button>
+          </form>
         </div>
       </header>
 
@@ -238,6 +276,7 @@ export function CalendarHome({
           brands={brands}
           hiddenBrands={hiddenBrands}
           onToggle={toggleBrand}
+          canWrite={canWrite}
           onAddBrand={() => setModal({ type: "brand" })}
         />
 
@@ -279,22 +318,24 @@ export function CalendarHome({
               {initiatives.length}
             </span>
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setModal({ type: "campaign" })}
-              className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-white px-[13px] py-1.5 text-[13px] font-medium transition-colors hover:border-[#d5d1c7] hover:bg-[#f2f0ea]"
-            >
-              <Plus size={14} /> Campaign
-            </button>
-            <button
-              type="button"
-              onClick={() => setModal({ type: "initiative" })}
-              className="inline-flex items-center gap-1.5 rounded-[9px] border border-navy bg-navy px-[13px] py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-navy-dark"
-            >
-              <Plus size={14} /> Initiative
-            </button>
-          </div>
+          {canWrite && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setModal({ type: "campaign" })}
+                className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-white px-[13px] py-1.5 text-[13px] font-medium transition-colors hover:border-[#d5d1c7] hover:bg-[#f2f0ea]"
+              >
+                <Plus size={14} /> Campaign
+              </button>
+              <button
+                type="button"
+                onClick={() => setModal({ type: "initiative" })}
+                className="inline-flex items-center gap-1.5 rounded-[9px] border border-navy bg-navy px-[13px] py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-navy-dark"
+              >
+                <Plus size={14} /> Initiative
+              </button>
+            </div>
+          )}
         </div>
 
         <GlobalSearch
@@ -307,13 +348,15 @@ export function CalendarHome({
           onPick={selectCampaign}
         />
 
-        <OrphanBar
-          orphans={orphans}
-          brandMap={brandMap}
-          onAdopt={(campaignId) =>
-            setModal({ type: "campaign", editId: campaignId })
-          }
-        />
+        {canWrite && (
+          <OrphanBar
+            orphans={orphans}
+            brandMap={brandMap}
+            onAdopt={(campaignId) =>
+              setModal({ type: "campaign", editId: campaignId })
+            }
+          />
+        )}
 
         <InitiativeCards
           initiatives={visibleInitiatives}
@@ -336,6 +379,7 @@ export function CalendarHome({
           canSeeFinancials={canSeeFinancials}
           onSelect={setSelected}
           onClose={() => setSelected(null)}
+          canWrite={canWrite}
           onEdit={editSelected}
           onDelete={deleteSelected}
         />

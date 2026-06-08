@@ -14,10 +14,11 @@ which is the UX source of truth.
 
 ## Project status
 
-Through **Cycle 4 — CRUD + search**: `/` is a working editor. Add/edit/delete
-brands, initiatives, and campaigns; a searchable initiative picker; orphan
-surfacing + adoption; and global search — all persisted to Supabase via Server
-Actions. Auth + RLS come next. See [`cycles/`](cycles/) for the per-cycle plans.
+Through **Cycle 5 — Auth + RLS financial gating**: the app requires login, and
+financial visibility (leads + pipeline $) is enforced server-side via
+Row-Level Security — the numbers are *absent from the response* for anyone not
+entitled, not merely hidden. See [Authentication & roles](#authentication--roles)
+and [`cycles/`](cycles/).
 
 ### Editing
 
@@ -78,55 +79,115 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the public anon key
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only; never expose to the browser
 
-### 3. Run the migration + seed
+### 3. Run the migrations + seed
 
-Apply the schema and sample data to your Supabase database. Either paste each
-file into the Supabase SQL Editor, or run them with `psql` against your
-connection string:
+Apply the schema and sample data to your Supabase database. Paste each file into
+the Supabase SQL Editor in order, or use the bundled runner (reads
+`SUPABASE_DB_URL` from `.env.local`):
 
 ```bash
-psql "$DATABASE_URL" -f supabase/migrations/0001_init.sql
-psql "$DATABASE_URL" -f supabase/seed.sql
+node scripts/run-sql.mjs \
+  supabase/migrations/0001_init.sql \
+  supabase/migrations/0002_auth.sql \
+  supabase/migrations/0003_financials.sql \
+  supabase/migrations/0004_rls.sql \
+  supabase/seed.sql
 ```
 
-> The seed is regenerated from the prototype with `node scripts/gen-seed.mjs`.
+> Run the seed **before** `0003` if starting fresh, or run `0001` + seed first,
+> then `0002`–`0004` (financials migrate from the seeded columns). The seed is
+> regenerated from the prototype with `node scripts/gen-seed.mjs`.
 
-### 4. Run the dev server
+### 4. Enable auth + bootstrap the first admin
+
+This app requires login (Cycle 5). In the Supabase dashboard:
+
+1. **Authentication → Providers → Email**: keep email/password enabled.
+2. **Disable public signups** (Authentication → Providers → Email → turn off
+   "Allow new users to sign up"). Accounts are invited by an admin.
+3. Invite yourself (Authentication → Users → Invite) or create a user, then
+   **promote the first admin** by SQL:
+
+   ```sql
+   update public.profiles
+   set role = 'admin', can_see_financials = true
+   where email = 'you@example.com';
+   ```
+
+See [Authentication & roles](#authentication--roles) for the full model.
+
+### 5. Run the dev server
 
 ```bash
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000). The calendar home opens on
-the Month view for June 2026, with the seeded events placed on their dates and
-color-coded by brand, pulled live from Supabase.
+Visit [http://localhost:3000](http://localhost:3000). You'll be redirected to
+`/login`; sign in with an invited account. The calendar home then opens on the
+Month view for June 2026, with the seeded events color-coded by brand.
+
+## Authentication & roles
+
+Login is required (cookie-based Supabase Auth via `@supabase/ssr`); `middleware.ts`
+redirects unauthenticated requests to `/login`. Every `auth.users` row gets a
+`profiles` row (via trigger) with a `role` and a `can_see_financials` flag.
+
+| Role | Content read | Write | Financials |
+| --- | --- | --- | --- |
+| **admin** | ✅ | ✅ | ✅ always; manages roles (`/team`) |
+| **member** | ✅ | ✅ | only if granted `can_see_financials` |
+| **external** | ✅ | ❌ | ❌ never |
+
+**Financial access** = `role = 'admin' OR can_see_financials = true`. An admin
+(e.g. Jackie) grants the flag to a member from the admin-only **`/team`** view.
+
+### How gating is enforced
+
+Financials (`leads`, `pipeline`) live in a separate `campaign_financials` table,
+not on `campaigns`. **Row-Level Security** is the backstop:
+
+- `campaign_financials` SELECT is allowed only with financial access — so an
+  unentitled caller's query returns **no rows**: the numbers are absent from the
+  response, not hidden in the client.
+- Content tables (`brands`/`initiatives`/`campaigns`/`events`): SELECT for any
+  authenticated user; writes only for staff (admin/member).
+- `profiles`: a user reads their own row; admins read/write all.
+- Anonymous (no session) matches no policy → denied.
+
+Server Actions also re-check the caller's role server-side (defense in depth);
+RLS is the authoritative backstop. The client role flag only hides UI.
 
 ## Project layout
 
 ```
 reference/ContentTracker.jsx   Prototype — UX + data source of truth
+src/middleware.ts              Auth gate — redirects unauthenticated to /login
 src/app/page.tsx               Home (server) — fetches data, renders CalendarHome
+src/app/login/                 Sign-in page
+src/app/team/                  Admin-only Team view (roles + financial access)
 src/components/calendar/       Calendar UI (CalendarHome shell, Toolbar, views, chips)
 src/components/initiative/     Initiative cards (InitiativeCards, InitiativeCard)
 src/components/drawer/         Detail drawer (DetailDrawer — campaign + initiative)
 src/components/modals/         CRUD modals (Brand/Initiative/Campaign) + pickers
 src/components/home/           Global search + orphan bar
+src/components/team/           Team table (role + financial-flag management)
 src/lib/types.ts               Domain types
+src/lib/auth.ts                Session/profile helpers + role guards
 src/lib/brands.ts              Brand tokens + status colors + swatches
 src/lib/utm.ts                 UTM derivation + assembly + channels
 src/lib/dates.ts               Date key/parse/format + grid math
 src/lib/rollups.ts             Initiative rollups + urgency sort
 src/lib/format.ts              Display formatters (money, initials)
-src/lib/queries.ts             Server data access (getHomeData)
-src/lib/actions.ts             Server Actions (CRUD + adopt)
-src/lib/supabase/              Server + browser Supabase clients
-supabase/migrations/           SQL schema
+src/lib/queries.ts             Server data access (getHomeData, role-aware)
+src/lib/actions.ts             Server Actions (CRUD + adopt + auth/team)
+src/lib/supabase/              Server / browser / middleware Supabase clients
+supabase/migrations/           SQL schema + auth + financials + RLS
 supabase/seed.sql              Sample data (generated)
 cycles/                        Per-cycle build plans
 ```
 
 ## Notes
 
-- **RLS is deferred to Cycle 5.** No row-level security is enabled yet.
+- **RLS is enabled on all tables** (Cycle 5). Financials are gated server-side.
 - `campaigns.initiative_id` is `ON DELETE SET NULL` (orphan-safe);
   `events.campaign_id` is `ON DELETE CASCADE`.

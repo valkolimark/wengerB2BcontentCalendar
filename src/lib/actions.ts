@@ -1,14 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { tintOf, textOf } from "@/lib/brands";
 import { slug, deriveSource, deriveMedium } from "@/lib/utm";
-import type { CampaignInput } from "@/lib/types";
+import { requireStaff, requireAdmin } from "@/lib/auth";
+import type { CampaignInput, Role } from "@/lib/types";
 
 /* --------------------------------- brands -------------------------------- */
 
 export async function createBrand(input: { label: string; dot: string }) {
+  await requireStaff();
   const label = input.label.trim();
   if (!label) throw new Error("Brand name is required.");
   const id = slug(label);
@@ -31,6 +34,7 @@ export async function updateBrand(
   id: string,
   input: { label: string; dot: string }
 ) {
+  await requireStaff();
   const label = input.label.trim();
   if (!label) throw new Error("Brand name is required.");
 
@@ -49,6 +53,7 @@ export async function updateBrand(
 }
 
 export async function deleteBrand(id: string) {
+  await requireStaff();
   const supabase = await createClient();
   // Refuse if any campaign still uses this brand.
   const { count, error: countErr } = await supabase
@@ -72,6 +77,7 @@ export async function createInitiative(input: {
   owner: string;
   status: string;
 }): Promise<string> {
+  await requireStaff();
   const name = input.name.trim();
   if (!name) throw new Error("Initiative name is required.");
 
@@ -94,6 +100,7 @@ export async function updateInitiative(
   id: string,
   input: { name: string; owner: string; status: string }
 ) {
+  await requireStaff();
   const name = input.name.trim();
   if (!name) throw new Error("Initiative name is required.");
 
@@ -113,6 +120,7 @@ export async function updateInitiative(
 // Deleting an initiative relies on campaigns.initiative_id ON DELETE SET NULL:
 // its campaigns become surfaced orphans, not deleted.
 export async function deleteInitiative(id: string) {
+  await requireStaff();
   const supabase = await createClient();
   const { error } = await supabase.from("initiatives").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -124,6 +132,7 @@ export async function adoptCampaigns(
   initiativeId: string,
   campaignIds: string[]
 ) {
+  await requireStaff();
   if (!initiativeId) throw new Error("An initiative is required.");
   if (campaignIds.length === 0) return;
 
@@ -149,6 +158,7 @@ function utmFields(input: CampaignInput) {
 export async function createCampaign(
   input: CampaignInput & { launch?: string; comp?: string }
 ) {
+  await requireStaff();
   const name = input.name.trim();
   if (!name) throw new Error("Campaign name is required.");
   if (!input.initiative_id) throw new Error("Pick an initiative.");
@@ -201,6 +211,7 @@ export async function createCampaign(
 
 // Metadata only — never touches existing events.
 export async function updateCampaign(id: string, input: CampaignInput) {
+  await requireStaff();
   const name = input.name.trim();
   if (!name) throw new Error("Campaign name is required.");
   if (!input.initiative_id) throw new Error("Pick an initiative.");
@@ -226,8 +237,44 @@ export async function updateCampaign(id: string, input: CampaignInput) {
 }
 
 export async function deleteCampaign(id: string) {
+  await requireStaff();
   const supabase = await createClient();
   const { error } = await supabase.from("campaigns").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/");
+}
+
+/* --------------------------------- auth ---------------------------------- */
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}
+
+/* ----------------------------- admin / team ------------------------------ */
+
+export async function updateUserRole(userId: string, role: Role) {
+  await requireAdmin();
+  if (!["admin", "member", "external"].includes(role)) {
+    throw new Error("Invalid role.");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role })
+    .eq("id", userId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/team");
+}
+
+export async function setFinancialAccess(userId: string, canSee: boolean) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ can_see_financials: canSee })
+    .eq("id", userId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/team");
 }
