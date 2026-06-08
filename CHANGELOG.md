@@ -3,6 +3,35 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## 1.0.0 — Cycle 7: Production deploy + hardening
+
+The v1.0 release — the Excel replacement, hardened for production.
+
+### Added
+
+- **Security headers + CSP** (`next.config.ts`): HSTS, `X-Content-Type-Options:
+  nosniff`, `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'`,
+  `Referrer-Policy`, `Permissions-Policy`, and a Content-Security-Policy
+  allowing `self`, the Supabase origin (REST + realtime), and Google Fonts.
+- **Error handling:** `app/error.tsx` (global boundary, no detail leaks),
+  `app/not-found.tsx` (404), and `app/loading.tsx`.
+- **Docs:** README deployment section + go-live checklist; dependency-hardening
+  notes (SheetJS CDN rationale; the Next/postcss audit advisory, tracked).
+
+### Hardening / ops
+
+- Pre-deploy audit: clean-install build confirms the SheetJS CDN tarball
+  resolves; `SUPABASE_SERVICE_ROLE_KEY` confirmed absent from `src/` (the app
+  runs on the anon key + cookies + RLS) and from git history; `.env.local`
+  gitignored and untracked.
+- Mark Mireles bootstrapped as `admin` (full financials + role management).
+
+### Operational steps (require dashboard access — see go-live checklist)
+
+- Vercel project connect + env vars + deploy/promote; Supabase Site URL /
+  redirect URLs + signup-off; remove throwaway test accounts; scheduled
+  backups; production per-role verification.
+
 ## 0.6.0 — Cycle 6: XLSX export / import
 
 Round-trip the data to and from a `.xlsx` workbook (SheetJS) for the existing

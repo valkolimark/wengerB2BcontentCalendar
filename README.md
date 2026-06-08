@@ -14,11 +14,11 @@ which is the UX source of truth.
 
 ## Project status
 
-Through **Cycle 6 — XLSX export / import**: the app round-trips its data to and
-from a `.xlsx` workbook (SheetJS) for the existing spreadsheet/SharePoint
-workflow. Export respects financial entitlement (with a scrubbed JMC view);
-import is admin-only, previewed before applying, and idempotent. Login is
-required and financials are RLS-gated (Cycle 5). See
+**v1.0.0 — Cycle 7: production-ready.** The full app — calendar home, cards,
+detail drawer, CRUD, search, orphan adoption, auth, RLS financial gating,
+`/team`, and XLSX export/import — hardened for production (security headers +
+CSP, error/not-found boundaries). See [Deployment](#deployment-vercel) and the
+[Go-live checklist](#go-live-checklist), plus
 [Authentication & roles](#authentication--roles), [Spreadsheet
 round-trip](#spreadsheet-export--import), and [`cycles/`](cycles/).
 
@@ -191,12 +191,58 @@ Import is **additive/update-only — no deletes — and idempotent**: re-importi
 the same file changes nothing (campaigns match by SF code; events match by
 campaign + type + date, so nothing duplicates).
 
+## Deployment (Vercel)
+
+Next 16 is auto-detected; no build config needed. The `xlsx` dependency resolves
+from the SheetJS CDN tarball pinned in `package.json` (see [Dependency
+notes](#notes)).
+
+1. **Connect the repo** to a Vercel project (Framework: Next.js).
+2. **Environment variables** (Project → Settings → Environment Variables):
+   | Variable | Scope | Notes |
+   | --- | --- | --- |
+   | `NEXT_PUBLIC_SUPABASE_URL` | All | public |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | All | public |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Production/Preview (server) | **server-only — never expose**; the app itself doesn't use it, but keep it out of any `NEXT_PUBLIC_*` name |
+3. **Deploy a preview**, smoke-test, then **promote to production**.
+4. Point Supabase auth at the production domain (below) so login redirects work.
+
+Security headers (HSTS, `X-Content-Type-Options`, `X-Frame-Options: DENY` +
+`frame-ancestors 'none'`, `Referrer-Policy`, `Permissions-Policy`, and a CSP
+allowing `self`, the Supabase origin, and Google Fonts) are set in
+`next.config.ts` and apply to every response.
+
+## Go-live checklist
+
+- [ ] Vercel env vars set; **`service_role` is not in any `NEXT_PUBLIC_*` var**.
+- [ ] Supabase → Authentication → URL Configuration: **Site URL** and
+      **Redirect URLs** set to the Vercel production domain.
+- [ ] Supabase → Authentication → Providers → Email: **"Allow new users to sign
+      up" is OFF** (accounts are invited).
+- [ ] RLS enabled on all 6 tables in the production project (it is, via the
+      migrations).
+- [ ] Real admin bootstrapped (`update public.profiles set role='admin',
+      can_see_financials=true where email='…';`); at least one admin can reach
+      `/team`.
+- [ ] Throwaway test accounts removed (`admin@`/`member@`/`external@wengertest.com`).
+- [ ] Supabase scheduled backups enabled; Vercel runtime logs accessible.
+- [ ] Security headers present (`curl -I https://<domain>`).
+- [ ] Per-role smoke test in production (admin sees financials; member without
+      the flag doesn't; granting via `/team` reveals them; external scrubbed +
+      read-only; anonymous → `/login`), and financials are **absent from the
+      network payload** for unentitled callers.
+- [ ] Export (Full + JMC) and admin import work against the live app.
+
 ## Project layout
 
 ```
 reference/ContentTracker.jsx   Prototype — UX + data source of truth
+next.config.ts                 Security headers + CSP, Turbopack root
 src/middleware.ts              Auth gate — redirects unauthenticated to /login
 src/app/page.tsx               Home (server) — fetches data, renders CalendarHome
+src/app/error.tsx              Global error boundary
+src/app/not-found.tsx          404 page
+src/app/loading.tsx            Home loading state
 src/app/login/                 Sign-in page
 src/app/team/                  Admin-only Team view (roles + financial access)
 src/components/calendar/       Calendar UI (CalendarHome shell, Toolbar, views, chips)
@@ -226,5 +272,13 @@ cycles/                        Per-cycle build plans
 ## Notes
 
 - **RLS is enabled on all tables** (Cycle 5). Financials are gated server-side.
+- **SheetJS (`xlsx`)** is installed from the SheetJS CDN tarball
+  (`xlsx-0.20.3.tgz`) pinned in `package.json`, **not** npm. The npm `xlsx` is
+  frozen at 0.18.5 with a published advisory; the CDN build is the maintainer's
+  recommended, patched distribution. It resolves from `package.json` in CI.
+- `npm audit` reports 2 moderate advisories in Next's transitive `postcss`
+  (CSS-stringify XSS). The only offered "fix" downgrades Next to 9.x — declined;
+  it doesn't apply to our usage (we never stringify untrusted CSS). Tracked, not
+  patched, to avoid breaking the framework.
 - `campaigns.initiative_id` is `ON DELETE SET NULL` (orphan-safe);
   `events.campaign_id` is `ON DELETE CASCADE`.
