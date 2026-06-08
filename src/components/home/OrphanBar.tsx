@@ -39,7 +39,7 @@ export function OrphanBar({
               key={c.id}
               type="button"
               onClick={() => onAdopt(c.id)}
-              className="flex items-center gap-2.5 rounded-[9px] border border-[#f0ddb0] bg-white px-3 py-2 text-left transition-colors hover:border-[#e0c98a]"
+              className="flex items-center gap-2.5 rounded-[9px] border border-[#f0ddb0] bg-surface px-3 py-2 text-left transition-colors hover:border-[#e0c98a]"
             >
               <span
                 className="size-2.5 shrink-0 rounded-[3px]"

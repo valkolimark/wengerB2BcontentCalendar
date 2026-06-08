@@ -83,8 +83,8 @@ export function BrandModal({
                 className="size-[26px] rounded-[7px] border-2"
                 style={{
                   background: s,
-                  borderColor: dot === s ? "#1B1B19" : "transparent",
-                  boxShadow: dot === s ? "0 0 0 2px #fff inset" : undefined,
+                  borderColor: dot === s ? "var(--color-ink)" : "transparent",
+                  boxShadow: dot === s ? "0 0 0 2px var(--color-surface) inset" : undefined,
                 }}
               />
             ))}
@@ -126,7 +126,7 @@ export function BrandModal({
                   disabled={used || pending}
                   onClick={() => remove(b.id)}
                   title={used ? "In use by campaigns" : "Delete"}
-                  className="flex size-8 items-center justify-center rounded-lg text-[#4a4a45] transition-colors hover:bg-[#f2f0ea] disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="flex size-8 items-center justify-center rounded-lg text-[var(--color-ink-soft)] transition-colors hover:bg-[var(--color-hover)] disabled:opacity-30 disabled:hover:bg-transparent"
                 >
                   <Trash2 size={14} />
                 </button>

@@ -17,8 +17,8 @@ export function EventChip({
 }) {
   const isLaunch = event.type === "launch";
   const dot = brand?.dot ?? "#A09E94";
-  const tint = brand?.tint ?? "#EEEDE7";
-  const text = brand?.text ?? "#4A4A45";
+  const tint = brand?.tint ?? "var(--color-surface-2)";
+  const text = brand?.text ?? "var(--color-ink-soft)";
 
   return (
     <button

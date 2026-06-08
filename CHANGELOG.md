@@ -3,6 +3,36 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.1.0] — Cycle 8 — 2026-06-08 — Theming & branding
+
+A real light/dark theme, fixed text contrast, and Wenger branding.
+
+### Added
+
+- **Light/dark theming.** A lightweight `ThemeProvider` (no `next-themes`)
+  toggles `class="dark"` on `<html>`, persists to `localStorage`, and defaults
+  to `prefers-color-scheme`. An **inline no-flash script** in `layout.tsx` sets
+  the theme before first paint. A sun/moon `ThemeToggle` sits in the app bar and
+  on login.
+- **Theme-reactive palette.** The custom palette moved to CSS variables in
+  `:root` / `.dark` (canvas, surface, ink + text grays, hair/line/cell, …),
+  surfaced as `@theme inline` tokens — so the **whole** app re-skins in dark
+  mode, not just shadcn chrome.
+- **Branding.** Wenger logos in `public/brand/` (`logo-lt`/`logo-dk`/`mark`);
+  the app bar swaps the logo by theme; favicon/metadata point at `mark.png`.
+- **Login rebrand.** Dark navy radial gradient, `logo-dk`, a glass card, and
+  light, legible text.
+
+### Fixed
+
+- **Washed-out text.** Resolved the duplicate `--color-muted` (the warm-gray
+  text token was shadowed by shadcn's near-white `muted`); renamed it to
+  `--color-ink-muted` and migrated `text-muted` usages. shadcn `bg-muted` /
+  `muted-foreground` left intact for the UI primitives.
+- **Contrast.** Darkened `faint`, `muted2`, and the renamed muted to pass
+  **WCAG AA (≥4.5:1)** on the canvas in both themes (verified: light 4.6–8.5:1,
+  dark 5.2–12:1).
+
 ## 1.0.0 — Cycle 7: Production deploy + hardening
 
 The v1.0 release — the Excel replacement, hardened for production.

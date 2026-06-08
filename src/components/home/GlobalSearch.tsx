@@ -29,7 +29,7 @@ export function GlobalSearch({
 
   return (
     <div>
-      <div className="mb-2.5 flex h-[42px] items-center gap-2 rounded-[11px] border border-line bg-white px-3 transition-[box-shadow,border-color] focus-within:border-navy focus-within:shadow-[0_0_0_3px_rgba(28,59,102,.1)]">
+      <div className="mb-2.5 flex h-[42px] items-center gap-2 rounded-[11px] border border-line bg-surface px-3 transition-[box-shadow,border-color] focus-within:border-navy focus-within:shadow-[0_0_0_3px_rgba(28,59,102,.1)]">
         <Search size={15} className="shrink-0 text-faint" />
         <input
           className="flex-1 bg-transparent text-sm outline-none"
@@ -42,7 +42,7 @@ export function GlobalSearch({
             type="button"
             onClick={() => onQ("")}
             aria-label="Clear search"
-            className="flex size-[22px] items-center justify-center rounded-full bg-seg text-muted"
+            className="flex size-[22px] items-center justify-center rounded-full bg-seg text-ink-muted"
           >
             <X size={14} />
           </button>
@@ -65,7 +65,7 @@ export function GlobalSearch({
                 key={c.id}
                 type="button"
                 onClick={() => onPick(c.id)}
-                className="flex items-center gap-2.5 rounded-[10px] border border-[#f0eee7] bg-[#fbfaf6] px-3 py-2.5 text-left transition-colors hover:border-[#d5d1c7] hover:bg-white"
+                className="flex items-center gap-2.5 rounded-[10px] border border-[var(--color-cell)] bg-[var(--color-surface-2)] px-3 py-2.5 text-left transition-colors hover:border-[#d5d1c7] hover:bg-surface"
               >
                 <span
                   className="size-2.5 shrink-0 rounded-[3px]"

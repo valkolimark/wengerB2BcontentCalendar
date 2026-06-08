@@ -30,7 +30,7 @@ export function BrandLegend({
               type="button"
               onClick={() => onToggle(b.id)}
               aria-pressed={!off}
-              className="inline-flex items-center gap-[7px] rounded-[20px] border border-line bg-white px-[11px] py-[5px] text-[12.5px] transition-colors hover:border-[#cfcbc0]"
+              className="inline-flex items-center gap-[7px] rounded-[20px] border border-line bg-surface px-[11px] py-[5px] text-[12.5px] transition-colors hover:border-[#cfcbc0]"
               style={{ opacity: off ? 0.38 : 1 }}
             >
               <span
@@ -45,7 +45,7 @@ export function BrandLegend({
           <button
             type="button"
             onClick={onAddBrand}
-            className="inline-flex items-center gap-[5px] rounded-[20px] border border-dashed border-line bg-white px-[11px] py-[5px] text-[12.5px] text-muted transition-colors hover:border-[#cfcbc0]"
+            className="inline-flex items-center gap-[5px] rounded-[20px] border border-dashed border-line bg-surface px-[11px] py-[5px] text-[12.5px] text-ink-muted transition-colors hover:border-[#cfcbc0]"
           >
             <Plus size={13} /> Brand
           </button>

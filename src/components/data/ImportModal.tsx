@@ -84,7 +84,7 @@ export function ImportModal({
 
         {!report && (
           <>
-            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed border-line bg-[#fbfaf6] px-4 py-7 text-center transition-colors hover:border-[#cfcbc0]">
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed border-line bg-[var(--color-surface-2)] px-4 py-7 text-center transition-colors hover:border-[#cfcbc0]">
               <UploadCloud size={26} className="text-faint" />
               <span className="text-[13.5px] font-medium">
                 {fileName ?? "Choose an .xlsx file"}
@@ -197,7 +197,7 @@ export function ImportModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-[9px] border border-line bg-white px-4 py-2 text-[13.5px] font-medium transition-colors hover:bg-[#f2f0ea]"
+                className="rounded-[9px] border border-line bg-surface px-4 py-2 text-[13.5px] font-medium transition-colors hover:bg-[var(--color-hover)]"
               >
                 Done
               </button>
@@ -219,7 +219,7 @@ function PreviewCard({
   second: string;
 }) {
   return (
-    <div className="rounded-[10px] border border-hair bg-white p-3">
+    <div className="rounded-[10px] border border-hair bg-surface p-3">
       <div className="text-[11px] uppercase tracking-[0.04em] text-faint">
         {label}
       </div>

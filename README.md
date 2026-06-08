@@ -14,11 +14,12 @@ which is the UX source of truth.
 
 ## Project status
 
-**v1.0.0 — Cycle 7: production-ready.** The full app — calendar home, cards,
-detail drawer, CRUD, search, orphan adoption, auth, RLS financial gating,
-`/team`, and XLSX export/import — hardened for production (security headers +
-CSP, error/not-found boundaries). See [Deployment](#deployment-vercel) and the
-[Go-live checklist](#go-live-checklist), plus
+**v1.1.0 — Cycle 8: theming & branding.** A real light/dark toggle that
+re-skins the whole app (no flash on load), WCAG-AA text contrast in both
+themes, a navy-gradient branded login, and the Wenger logos in-app. Built on
+**v1.0.0** (production-ready: full app + auth + RLS gating + XLSX + hardening).
+See [Theming & branding](#theming--branding), [Deployment](#deployment-vercel),
+the [Go-live checklist](#go-live-checklist),
 [Authentication & roles](#authentication--roles), [Spreadsheet
 round-trip](#spreadsheet-export--import), and [`cycles/`](cycles/).
 
@@ -190,6 +191,34 @@ backstop) upserts:
 Import is **additive/update-only — no deletes — and idempotent**: re-importing
 the same file changes nothing (campaigns match by SF code; events match by
 campaign + type + date, so nothing duplicates).
+
+## Theming & branding
+
+The app supports **light and dark** themes. A sun/moon **toggle** sits in the
+app bar (and on login); the choice persists to `localStorage` and defaults to
+the OS `prefers-color-scheme`. An **inline no-flash script** in `layout.tsx`
+sets the theme class on `<html>` before first paint, so there's no flash of the
+wrong theme.
+
+The palette is a set of CSS variables in `globals.css` (`:root` for light,
+`.dark` for dark) surfaced as Tailwind tokens (`bg-canvas`, `bg-surface`,
+`text-ink-muted`, `border-hair`, …), so the **whole** UI re-skins — not just the
+shadcn chrome. Text grays are tuned to pass **WCAG AA (≥4.5:1)** in both themes.
+Brand `dot`/`tint`/`text` remain inline data, not tokens.
+
+### Logo assets
+
+Brand artwork lives in `public/brand/` with web-safe names:
+
+| File | Use |
+| --- | --- |
+| `logo-lt.png` | full logo on **light** backgrounds (light-mode app bar) |
+| `logo-dk.png` | full logo on **dark** backgrounds (login gradient + dark-mode app bar) |
+| `mark.png` | square W-in-circle mark — favicon / compact use |
+
+They're raster PNGs rendered via `next/image` with explicit dimensions so they
+stay crisp and don't shift layout. The app bar swaps `logo-lt`/`logo-dk` by the
+active theme.
 
 ## Deployment (Vercel)
 

@@ -3,7 +3,9 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ShieldCheck, Plus, LogOut, Users } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import type {
   Brand,
   CalendarEvent,
@@ -221,19 +223,32 @@ export function CalendarHome({
 
   return (
     <div className="min-h-screen bg-canvas font-sans text-ink">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-hair bg-white px-[22px] py-[13px]">
-        <div className="flex items-center gap-[11px]">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-navy text-base font-bold text-white">
-            W
-          </span>
-          <div>
-            <div className="text-[15px] font-semibold tracking-[-0.01em]">
-              Content Tracker
-            </div>
-            <div className="text-[11px] text-muted2">Wenger B2B · 2026</div>
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-hair bg-surface px-[22px] py-[13px]">
+        <div className="flex items-center gap-3">
+          {/* Theme-swapped Wenger logo (light artwork on dark, dark on light). */}
+          <Image
+            src="/brand/logo-lt.png"
+            alt="Wenger"
+            width={120}
+            height={68}
+            priority
+            className="block h-7 w-auto dark:hidden"
+          />
+          <Image
+            src="/brand/logo-dk.png"
+            alt="Wenger"
+            width={120}
+            height={68}
+            priority
+            className="hidden h-7 w-auto dark:block"
+          />
+          <span className="hidden h-6 w-px bg-line sm:block" />
+          <div className="hidden text-[13px] font-semibold tracking-[-0.01em] text-ink-muted sm:block">
+            Content Tracker
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <DataMenu
             brands={brands}
             initiatives={initiatives}
@@ -245,25 +260,25 @@ export function CalendarHome({
           {role === "admin" && (
             <Link
               href="/team"
-              className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-white px-2.5 py-[6px] text-[13px] font-medium transition-colors hover:bg-[#f2f0ea]"
+              className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-surface px-2.5 py-[6px] text-[13px] font-medium transition-colors hover:bg-[var(--color-hover)]"
             >
               <Users size={14} /> Team
             </Link>
           )}
           <div
-            className="flex items-center gap-[7px] rounded-[9px] border border-hair bg-[#f4f2ec] px-2.5 py-[5px] text-[13px] font-medium text-muted"
+            className="flex items-center gap-[7px] rounded-[9px] border border-hair bg-[var(--color-hover)] px-2.5 py-[5px] text-[13px] font-medium text-ink-muted"
             title={userEmail ?? undefined}
           >
             <ShieldCheck size={15} />
             <span className="max-w-[180px] truncate">{userEmail ?? "Signed in"}</span>
-            <span className="rounded-md bg-white px-1.5 py-px text-[11px] text-muted2">
+            <span className="rounded-md bg-surface px-1.5 py-px text-[11px] text-muted2">
               {ROLE_LABEL[role]}
             </span>
           </div>
           <form action={signOut}>
             <button
               type="submit"
-              className="flex size-8 items-center justify-center rounded-lg border border-line bg-white text-[#4a4a45] transition-colors hover:bg-[#f2f0ea]"
+              className="flex size-8 items-center justify-center rounded-lg border border-line bg-surface text-[var(--color-ink-soft)] transition-colors hover:bg-[var(--color-hover)]"
               aria-label="Sign out"
               title="Sign out"
             >
@@ -291,7 +306,7 @@ export function CalendarHome({
           onAddBrand={() => setModal({ type: "brand" })}
         />
 
-        <section className="mb-[26px] rounded-[14px] border border-hair bg-white p-4">
+        <section className="mb-[26px] rounded-[14px] border border-hair bg-surface p-4">
           {view === "month" && (
             <MonthView
               cursor={cursor}
@@ -334,7 +349,7 @@ export function CalendarHome({
               <button
                 type="button"
                 onClick={() => setModal({ type: "campaign" })}
-                className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-white px-[13px] py-1.5 text-[13px] font-medium transition-colors hover:border-[#d5d1c7] hover:bg-[#f2f0ea]"
+                className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-surface px-[13px] py-1.5 text-[13px] font-medium transition-colors hover:border-[#d5d1c7] hover:bg-[var(--color-hover)]"
               >
                 <Plus size={14} /> Campaign
               </button>

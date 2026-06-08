@@ -220,7 +220,7 @@ export function CampaignModal({
                   <button
                     type="button"
                     onClick={() => setAutoComp((a) => !a)}
-                    className="rounded-md border border-line bg-[#f4f2ec] px-2 py-px text-[11px] text-muted"
+                    className="rounded-md border border-line bg-[var(--color-hover)] px-2 py-px text-[11px] text-ink-muted"
                   >
                     {autoComp ? "auto −10d" : "manual"}
                   </button>
@@ -252,8 +252,8 @@ export function CampaignModal({
             live
           </span>
         </div>
-        <div className="rounded-[10px] border border-hair bg-[#f7f6f2] px-3 py-2.5">
-          <code className="break-all text-[11.5px] leading-relaxed text-[#3a3a35]">
+        <div className="rounded-[10px] border border-hair bg-[var(--color-surface-2)] px-3 py-2.5">
+          <code className="break-all text-[11.5px] leading-relaxed text-[var(--color-ink-muted)]">
             {preview}
           </code>
         </div>

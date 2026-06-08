@@ -37,10 +37,10 @@ export function TeamTable({
 
   return (
     <div className="min-h-screen bg-canvas font-sans text-ink">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-hair bg-white px-[22px] py-[13px]">
+      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-hair bg-surface px-[22px] py-[13px]">
         <Link
           href="/"
-          className="flex size-8 items-center justify-center rounded-lg border border-line bg-white text-[#4a4a45] transition-colors hover:bg-[#f2f0ea]"
+          className="flex size-8 items-center justify-center rounded-lg border border-line bg-surface text-[var(--color-ink-soft)] transition-colors hover:bg-[var(--color-hover)]"
           aria-label="Back to app"
         >
           <ChevronLeft size={18} />
@@ -54,7 +54,7 @@ export function TeamTable({
       <main className="mx-auto max-w-[760px] p-[22px]">
         {err && <p className="mb-3 text-[12.5px] text-[#b91c1c]">{err}</p>}
 
-        <div className="overflow-hidden rounded-[14px] border border-hair bg-white">
+        <div className="overflow-hidden rounded-[14px] border border-hair bg-surface">
           <table className="w-full border-collapse text-[13.5px]">
             <thead>
               <tr className="border-b border-hair text-left text-muted2">
@@ -68,7 +68,7 @@ export function TeamTable({
                 const isSelf = p.id === currentUserId;
                 const financialsOn = p.role === "admin" || p.can_see_financials;
                 return (
-                  <tr key={p.id} className="border-b border-[#f5f5f4] last:border-0">
+                  <tr key={p.id} className="border-b border-[var(--color-surface-2)] last:border-0">
                     <td className="px-4 py-3">
                       <span className="font-medium">{p.email ?? p.id}</span>
                       {isSelf && (
@@ -85,7 +85,7 @@ export function TeamTable({
                         onChange={(e) =>
                           run(() => updateUserRole(p.id, e.target.value as Role))
                         }
-                        className="h-[34px] rounded-[9px] border border-line bg-white px-2 text-[13px] outline-none focus:border-navy disabled:opacity-50"
+                        className="h-[34px] rounded-[9px] border border-line bg-surface px-2 text-[13px] outline-none focus:border-navy disabled:opacity-50"
                       >
                         {ROLES.map((r) => (
                           <option key={r} value={r}>
@@ -109,7 +109,7 @@ export function TeamTable({
                             run(() => setFinancialAccess(p.id, e.target.checked))
                           }
                         />
-                        <span className="text-[12.5px] text-muted">
+                        <span className="text-[12.5px] text-ink-muted">
                           {financialsOn ? "Granted" : "Off"}
                           {p.role === "admin" ? " (admin)" : ""}
                         </span>

@@ -44,7 +44,7 @@ export function Toolbar({
           type="button"
           onClick={onPrev}
           aria-label="Previous"
-          className="flex size-8 items-center justify-center rounded-lg border border-line bg-white text-[#4a4a45] transition-colors hover:border-[#d5d1c7] hover:bg-[#f2f0ea]"
+          className="flex size-8 items-center justify-center rounded-lg border border-line bg-surface text-[var(--color-ink-soft)] transition-colors hover:border-[#d5d1c7] hover:bg-[var(--color-hover)]"
         >
           <ChevronLeft size={18} />
         </button>
@@ -55,14 +55,14 @@ export function Toolbar({
           type="button"
           onClick={onNext}
           aria-label="Next"
-          className="flex size-8 items-center justify-center rounded-lg border border-line bg-white text-[#4a4a45] transition-colors hover:border-[#d5d1c7] hover:bg-[#f2f0ea]"
+          className="flex size-8 items-center justify-center rounded-lg border border-line bg-surface text-[var(--color-ink-soft)] transition-colors hover:border-[#d5d1c7] hover:bg-[var(--color-hover)]"
         >
           <ChevronRight size={18} />
         </button>
         <button
           type="button"
           onClick={onToday}
-          className="ml-1 rounded-lg border border-line bg-white px-[13px] py-1.5 text-[13px] transition-colors hover:bg-[#f2f0ea]"
+          className="ml-1 rounded-lg border border-line bg-surface px-[13px] py-1.5 text-[13px] transition-colors hover:bg-[var(--color-hover)]"
         >
           Today
         </button>
@@ -78,7 +78,7 @@ export function Toolbar({
               onClick={() => onView(v)}
               className="rounded-[7px] px-[15px] py-1.5 text-[13px] font-medium transition-colors"
               style={{
-                background: on ? "#fff" : "transparent",
+                background: on ? "var(--color-surface)" : "transparent",
                 color: on ? "var(--color-ink)" : "var(--color-muted)",
                 boxShadow: on ? "0 1px 2px rgba(0,0,0,.06)" : undefined,
               }}

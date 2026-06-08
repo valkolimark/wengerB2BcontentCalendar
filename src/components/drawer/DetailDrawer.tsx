@@ -92,7 +92,7 @@ export function DetailDrawer({
       onClick={onClose}
     >
       <aside
-        className="h-full w-[412px] max-w-[92vw] overflow-y-auto bg-white"
+        className="h-full w-[412px] max-w-[92vw] overflow-y-auto bg-surface"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -143,7 +143,7 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex size-8 items-center justify-center rounded-lg text-[#4a4a45] transition-colors hover:bg-[#f2f0ea]"
+      className="flex size-8 items-center justify-center rounded-lg text-[var(--color-ink-soft)] transition-colors hover:bg-[var(--color-hover)]"
     >
       {children}
     </button>
@@ -152,7 +152,7 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
 
 function Fact({ ic, k, v, mono }: { ic: ReactNode; k: string; v: string; mono?: boolean }) {
   return (
-    <div className="grid grid-cols-[22px_78px_1fr] items-center gap-2 border-b border-[#f2f0ea] py-[9px] text-[13px]">
+    <div className="grid grid-cols-[22px_78px_1fr] items-center gap-2 border-b border-[var(--color-hover)] py-[9px] text-[13px]">
       <span className="text-faint">{ic}</span>
       <span className="text-muted2">{k}</span>
       <span className={`font-medium ${mono ? "font-mono text-[12.5px]" : ""}`}>{v}</span>
@@ -195,8 +195,8 @@ function CampaignBody({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const tint = brand?.tint ?? "#F2F0EA";
-  const text = brand?.text ?? "#4A4A45";
+  const tint = brand?.tint ?? "var(--color-hover)";
+  const text = brand?.text ?? "var(--color-ink-soft)";
   const dot = brand?.dot ?? "#A09E94";
 
   // Assemble (never store) the UTM string from the campaign's fields.
@@ -276,8 +276,8 @@ function CampaignBody({
               >
                 {ev.type === "launch" ? <Send size={12} /> : <Palette size={12} />}
               </span>
-              <span className="min-w-[92px] font-mono text-xs text-muted">{ev.date}</span>
-              <span className="text-[#4a4a45]">
+              <span className="min-w-[92px] font-mono text-xs text-ink-muted">{ev.date}</span>
+              <span className="text-[var(--color-ink-soft)]">
                 {ev.type === "launch" ? "Launch" : "Comp review due"}
               </span>
             </div>
@@ -290,14 +290,14 @@ function CampaignBody({
             auto-assembled
           </span>
         </SecLabel>
-        <div className="flex items-center gap-2 rounded-[10px] border border-hair bg-[#f7f6f2] px-3 py-[11px]">
-          <code className="flex-1 break-all text-[11.5px] leading-relaxed text-[#3a3a35]">
+        <div className="flex items-center gap-2 rounded-[10px] border border-hair bg-[var(--color-surface-2)] px-3 py-[11px]">
+          <code className="flex-1 break-all text-[11.5px] leading-relaxed text-[var(--color-ink-muted)]">
             {utm}
           </code>
           <button
             type="button"
             onClick={() => onCopy(utm)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs transition-colors hover:bg-[#f2f0ea]"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-[var(--color-hover)]"
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}
             {copied ? "Copied" : "Copy"}
@@ -344,7 +344,7 @@ function InitiativeBody({
 
   return (
     <>
-      <div className="flex items-center justify-between bg-[#f2f0ea] px-4 py-3.5">
+      <div className="flex items-center justify-between bg-[var(--color-hover)] px-4 py-3.5">
         <div className="inline-flex items-center gap-2 text-[13px] font-semibold">
           <span className="inline-flex gap-[3px]">
             {bs.map((b) => (
@@ -396,7 +396,7 @@ function InitiativeBody({
 
         <SecLabel>
           Campaigns
-          <span className="ml-1.5 rounded-md bg-[#eeede7] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-muted">
+          <span className="ml-1.5 rounded-md bg-[var(--color-surface-2)] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-ink-muted">
             {r.count}
           </span>
         </SecLabel>
@@ -408,7 +408,7 @@ function InitiativeBody({
                 key={c.id}
                 type="button"
                 onClick={() => onSelect({ kind: "campaign", id: c.id })}
-                className="flex items-center gap-2.5 rounded-[10px] border border-[#f0eee7] bg-white px-3 py-2.5 text-left transition-colors hover:border-[#d5d1c7] hover:bg-out"
+                className="flex items-center gap-2.5 rounded-[10px] border border-[var(--color-cell)] bg-surface px-3 py-2.5 text-left transition-colors hover:border-[#d5d1c7] hover:bg-out"
               >
                 <span className="size-2.5 shrink-0 rounded-[3px]" style={{ background: b?.dot }} />
                 <span className="flex-1 text-[13px] font-medium">{c.name}</span>

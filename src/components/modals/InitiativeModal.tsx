@@ -141,7 +141,7 @@ export function InitiativeModal({
           <>
             <div className="mb-2 mt-1.5 flex items-center text-[11px] font-semibold uppercase tracking-[0.05em] text-faint">
               Campaigns here
-              <span className="ml-1.5 rounded-md bg-[#eeede7] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-muted">
+              <span className="ml-1.5 rounded-md bg-[var(--color-surface-2)] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-ink-muted">
                 {members.length}
               </span>
             </div>
@@ -149,7 +149,7 @@ export function InitiativeModal({
               {members.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center gap-2.5 rounded-[9px] border border-[#f0eee7] bg-[#fbfaf6] px-[11px] py-2"
+                  className="flex items-center gap-2.5 rounded-[9px] border border-[var(--color-cell)] bg-[var(--color-surface-2)] px-[11px] py-2"
                 >
                   <span className="size-2.5 rounded-[3px]" style={{ background: brandMap[c.brand_id]?.dot }} />
                   <span className="flex-1 text-[13px] font-medium">{c.name}</span>
@@ -167,7 +167,7 @@ export function InitiativeModal({
             </span>
           )}
         </div>
-        <div className="mb-2 flex h-9 items-center gap-2 rounded-[9px] border border-line bg-white px-3 transition-[box-shadow,border-color] focus-within:border-navy focus-within:shadow-[0_0_0_3px_rgba(28,59,102,.1)]">
+        <div className="mb-2 flex h-9 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 transition-[box-shadow,border-color] focus-within:border-navy focus-within:shadow-[0_0_0_3px_rgba(28,59,102,.1)]">
           <Search size={14} className="shrink-0 text-faint" />
           <input
             className="flex-1 bg-transparent text-sm outline-none"
@@ -180,7 +180,7 @@ export function InitiativeModal({
               type="button"
               onClick={() => setCq("")}
               aria-label="Clear"
-              className="flex size-[22px] items-center justify-center rounded-full bg-seg text-muted"
+              className="flex size-[22px] items-center justify-center rounded-full bg-seg text-ink-muted"
             >
               <X size={13} />
             </button>
@@ -204,7 +204,7 @@ export function InitiativeModal({
                 className="flex w-full items-center gap-2.5 rounded-[9px] border px-[11px] py-2 text-left transition-colors"
                 style={{
                   borderColor: on ? "var(--color-navy)" : "var(--color-cell)",
-                  background: on ? "#eef3f9" : "#fff",
+                  background: on ? "var(--color-selected)" : "var(--color-surface)",
                 }}
               >
                 <span className="size-2.5 shrink-0 rounded-[3px]" style={{ background: brandMap[c.brand_id]?.dot }} />

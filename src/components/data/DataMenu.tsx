@@ -37,7 +37,7 @@ export function DataMenu({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-white px-2.5 py-[6px] text-[13px] font-medium transition-colors hover:bg-[#f2f0ea]"
+        className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-surface px-2.5 py-[6px] text-[13px] font-medium transition-colors hover:bg-[var(--color-hover)]"
       >
         <FileSpreadsheet size={14} /> Data
         <ChevronDown size={13} className="text-faint" />
@@ -53,13 +53,13 @@ export function DataMenu({
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-30 cursor-default"
           />
-          <div className="absolute right-0 z-40 mt-1.5 w-[230px] overflow-hidden rounded-[11px] border border-hair bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,.10)]">
+          <div className="absolute right-0 z-40 mt-1.5 w-[230px] overflow-hidden rounded-[11px] border border-hair bg-surface py-1 shadow-[0_8px_24px_rgba(0,0,0,.10)]">
             <button
               type="button"
               onClick={() => doExport(canSeeFinancials)}
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[#f2f0ea]"
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
             >
-              <Download size={14} className="text-muted" />
+              <Download size={14} className="text-ink-muted" />
               <span>
                 Full export
                 <span className="block text-[11px] text-faint">
@@ -72,9 +72,9 @@ export function DataMenu({
             <button
               type="button"
               onClick={() => doExport(false)}
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[#f2f0ea]"
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
             >
-              <Download size={14} className="text-muted" />
+              <Download size={14} className="text-ink-muted" />
               <span>
                 JMC view
                 <span className="block text-[11px] text-faint">
@@ -92,9 +92,9 @@ export function DataMenu({
                     setOpen(false);
                     onImport();
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[#f2f0ea]"
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
                 >
-                  <Upload size={14} className="text-muted" />
+                  <Upload size={14} className="text-ink-muted" />
                   <span>
                     Import…
                     <span className="block text-[11px] text-faint">

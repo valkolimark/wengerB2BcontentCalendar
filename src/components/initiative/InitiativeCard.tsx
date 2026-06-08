@@ -47,7 +47,7 @@ export function InitiativeCard({
     <button
       type="button"
       onClick={onSelect}
-      className="relative overflow-hidden rounded-[14px] border border-hair bg-white py-[15px] pl-[19px] pr-4 text-left transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-[#d5d1c7] hover:shadow-[0_6px_18px_rgba(0,0,0,.05)]"
+      className="relative overflow-hidden rounded-[14px] border border-hair bg-surface py-[15px] pl-[19px] pr-4 text-left transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-[#d5d1c7] hover:shadow-[0_6px_18px_rgba(0,0,0,.05)]"
     >
       <span className="absolute inset-y-0 left-0 flex w-1 flex-col">
         {bars.map((b, k) => (
@@ -82,7 +82,7 @@ export function InitiativeCard({
         </div>
       )}
 
-      <div className="my-[11px] h-1.5 overflow-hidden rounded bg-[#efede6]">
+      <div className="my-[11px] h-1.5 overflow-hidden rounded bg-[var(--color-surface-2)]">
         <span
           className="block h-full rounded"
           style={{
@@ -94,11 +94,11 @@ export function InitiativeCard({
 
       <div className="flex items-end justify-between gap-2.5">
         <div>
-          <div className="text-[12.5px] font-medium text-[#4a4a45]">{m1}</div>
+          <div className="text-[12.5px] font-medium text-[var(--color-ink-soft)]">{m1}</div>
           <div className="mt-0.5 text-xs text-faint">{m2}</div>
         </div>
         <span
-          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#f0eee7] text-[11px] font-semibold text-muted"
+          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-cell)] text-[11px] font-semibold text-ink-muted"
           title={initiative.owner}
         >
           {initials(initiative.owner)}

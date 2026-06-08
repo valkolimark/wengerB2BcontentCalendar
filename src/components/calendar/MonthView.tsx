@@ -46,7 +46,7 @@ export function MonthView({
               className="min-h-[92px] overflow-hidden rounded-[9px] border p-1.5"
               style={{
                 borderColor: isToday ? "var(--color-navy)" : "var(--color-cell)",
-                background: out ? "var(--color-out)" : "#fff",
+                background: out ? "var(--color-out)" : "var(--color-surface)",
                 opacity: out ? 0.55 : 1,
                 boxShadow: isToday ? "inset 0 0 0 1px var(--color-navy)" : undefined,
               }}

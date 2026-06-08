@@ -5,9 +5,9 @@
 export default function Error({ reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-5 font-sans text-ink">
-      <div className="w-full max-w-[420px] rounded-[14px] border border-hair bg-white p-6 text-center">
+      <div className="w-full max-w-[420px] rounded-[14px] border border-hair bg-surface p-6 text-center">
         <h1 className="text-[18px] font-semibold">Something went wrong</h1>
-        <p className="mt-2 text-[13.5px] text-muted">
+        <p className="mt-2 text-[13.5px] text-ink-muted">
           We couldn’t load this page. This is usually temporary — please try
           again.
         </p>
