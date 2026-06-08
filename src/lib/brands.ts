@@ -57,3 +57,16 @@ export const STATUS: Record<string, StatusColor> = {
 };
 
 export const STATUS_OPTS = Object.keys(STATUS);
+
+// Quick-pick swatches for the brand modal (ported from the prototype).
+export const SWATCHES = [
+  "#1C3B66",
+  "#2E6B3E",
+  "#B22234",
+  "#E0721F",
+  "#3E5871",
+  "#4A5568",
+  "#6B3FA0",
+  "#0E7C86",
+  "#A8326E",
+];

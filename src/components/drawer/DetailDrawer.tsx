@@ -14,6 +14,8 @@ import {
   Mail,
   Target,
   ChevronRight,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import type {
   Brand,
@@ -37,6 +39,8 @@ export function DetailDrawer({
   canSeeFinancials,
   onSelect,
   onClose,
+  onEdit,
+  onDelete,
 }: {
   selected: OpenSelection;
   brandMap: Record<string, Brand>;
@@ -46,6 +50,8 @@ export function DetailDrawer({
   canSeeFinancials: boolean;
   onSelect: (sel: OpenSelection) => void;
   onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -103,6 +109,8 @@ export function DetailDrawer({
             onCopy={doCopy}
             onSelect={onSelect}
             onClose={onClose}
+            onEdit={onEdit}
+            onDelete={onDelete}
           />
         )}
         {initiative && (
@@ -114,6 +122,8 @@ export function DetailDrawer({
             canSeeFinancials={canSeeFinancials}
             onSelect={onSelect}
             onClose={onClose}
+            onEdit={onEdit}
+            onDelete={onDelete}
           />
         )}
       </aside>
@@ -165,6 +175,8 @@ function CampaignBody({
   onCopy,
   onSelect,
   onClose,
+  onEdit,
+  onDelete,
 }: {
   campaign: CampaignWithEvents;
   brand: Brand | undefined;
@@ -174,6 +186,8 @@ function CampaignBody({
   onCopy: (t: string) => void;
   onSelect: (sel: OpenSelection) => void;
   onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const tint = brand?.tint ?? "#F2F0EA";
   const text = brand?.text ?? "#4A4A45";
@@ -201,9 +215,17 @@ function CampaignBody({
           <span className="size-2.5 rounded-[3px]" style={{ background: dot }} />
           {brand?.label ?? campaign.brand_id}
         </div>
-        <IconBtn label="Close" onClick={onClose}>
-          <X size={18} />
-        </IconBtn>
+        <div className="flex gap-0.5">
+          <IconBtn label="Edit campaign" onClick={onEdit}>
+            <Pencil size={15} />
+          </IconBtn>
+          <IconBtn label="Delete campaign" onClick={onDelete}>
+            <Trash2 size={15} />
+          </IconBtn>
+          <IconBtn label="Close" onClick={onClose}>
+            <X size={18} />
+          </IconBtn>
+        </div>
       </div>
 
       <div className="p-[18px]">
@@ -290,6 +312,8 @@ function InitiativeBody({
   canSeeFinancials,
   onSelect,
   onClose,
+  onEdit,
+  onDelete,
 }: {
   initiative: Initiative;
   campaigns: CampaignWithEvents[];
@@ -298,6 +322,8 @@ function InitiativeBody({
   canSeeFinancials: boolean;
   onSelect: (sel: OpenSelection) => void;
   onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const r = rollup(initiative.id, campaigns, today);
   const st = STATUS[initiative.status] ?? STATUS.Planning;
@@ -317,9 +343,17 @@ function InitiativeBody({
             ? "Co-branded initiative"
             : bs[0]?.label ?? "Initiative"}
         </div>
-        <IconBtn label="Close" onClick={onClose}>
-          <X size={18} />
-        </IconBtn>
+        <div className="flex gap-0.5">
+          <IconBtn label="Edit initiative" onClick={onEdit}>
+            <Pencil size={15} />
+          </IconBtn>
+          <IconBtn label="Delete initiative" onClick={onDelete}>
+            <Trash2 size={15} />
+          </IconBtn>
+          <IconBtn label="Close" onClick={onClose}>
+            <X size={18} />
+          </IconBtn>
+        </div>
       </div>
 
       <div className="p-[18px]">

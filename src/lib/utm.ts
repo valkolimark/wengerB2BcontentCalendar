@@ -4,6 +4,17 @@
 export const slug = (s: string): string =>
   (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
 
+/** Channel options for the campaign form (ported from the prototype). */
+export const CHANNELS = [
+  "Email",
+  "Email Sponsorship",
+  "Banner Ads",
+  "Search Ads",
+  "Webinar",
+  "Social",
+  "Newsletter",
+];
+
 const MEDIUM_MAP: Record<string, string> = {
   email: "email",
   "email sponsorship": "email",

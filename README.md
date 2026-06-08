@@ -14,10 +14,29 @@ which is the UX source of truth.
 
 ## Project status
 
-Through **Cycle 3 — Initiative cards + detail drawer**: `/` is a navigable,
-read-only home screen — the calendar plus initiative cards plus a clickable
-detail drawer, all driven by live Supabase data. Add/edit/delete (CRUD) and
-auth come in later cycles. See [`cycles/`](cycles/) for the per-cycle plans.
+Through **Cycle 4 — CRUD + search**: `/` is a working editor. Add/edit/delete
+brands, initiatives, and campaigns; a searchable initiative picker; orphan
+surfacing + adoption; and global search — all persisted to Supabase via Server
+Actions. Auth + RLS come next. See [`cycles/`](cycles/) for the per-cycle plans.
+
+### Editing
+
+- **+ Brand** (legend), **+ Initiative** / **+ Campaign** (initiatives header),
+  and **edit / delete** buttons in the detail drawer open shadcn `Dialog`
+  modals. Writes go through Server Actions; the view refreshes on save.
+- **Brands:** pick a color → `tint`/`text` derive automatically. An in-use brand
+  can't be deleted.
+- **Initiatives:** name / owner / status, with a members list and a campaign
+  **adopt** search (orphans first, widening on query). Deleting an initiative
+  leaves its campaigns as surfaced orphans, not deleted.
+- **Campaigns:** a searchable initiative picker, brand select, and a **live UTM
+  preview** (source/medium derive from vendor + channel; campaign = SF code).
+  On create, a launch date + auto comp-due (launch − 10d, toggle to manual)
+  seed the events. Editing changes metadata only — existing events are kept.
+- **Orphans** (campaigns with no initiative) surface in a bar on the home
+  screen and can be adopted into an initiative.
+- **Global search** filters the initiative cards and surfaces matching
+  campaigns; click a result to open it.
 
 ### The home screen
 
@@ -90,13 +109,16 @@ src/app/page.tsx               Home (server) — fetches data, renders CalendarH
 src/components/calendar/       Calendar UI (CalendarHome shell, Toolbar, views, chips)
 src/components/initiative/     Initiative cards (InitiativeCards, InitiativeCard)
 src/components/drawer/         Detail drawer (DetailDrawer — campaign + initiative)
+src/components/modals/         CRUD modals (Brand/Initiative/Campaign) + pickers
+src/components/home/           Global search + orphan bar
 src/lib/types.ts               Domain types
-src/lib/brands.ts              Brand tokens + status colors
-src/lib/utm.ts                 UTM derivation + assembly
+src/lib/brands.ts              Brand tokens + status colors + swatches
+src/lib/utm.ts                 UTM derivation + assembly + channels
 src/lib/dates.ts               Date key/parse/format + grid math
 src/lib/rollups.ts             Initiative rollups + urgency sort
 src/lib/format.ts              Display formatters (money, initials)
 src/lib/queries.ts             Server data access (getHomeData)
+src/lib/actions.ts             Server Actions (CRUD + adopt)
 src/lib/supabase/              Server + browser Supabase clients
 supabase/migrations/           SQL schema
 supabase/seed.sql              Sample data (generated)

@@ -84,3 +84,17 @@ export type Campaign = {
 
 // A campaign with its events nested — the shape returned by getHomeData.
 export type CampaignWithEvents = Campaign & { events: EventLite[] };
+
+// Editable campaign fields submitted from the campaign form. utm_source/medium
+// are derived server-side from vendor/channel, so they aren't part of the input.
+export type CampaignInput = {
+  initiative_id: string;
+  brand_id: string;
+  name: string;
+  channel: string;
+  vendor: string;
+  segment: string;
+  owner: string;
+  sf_code: string;
+  utm_content: string;
+};

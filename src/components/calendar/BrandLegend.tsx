@@ -1,18 +1,21 @@
-import { Send, Palette } from "lucide-react";
+import { Send, Palette, Plus } from "lucide-react";
 import type { Brand } from "@/lib/types";
 
 /**
  * One chip per brand (color dot + label). Clicking a chip toggles that brand's
- * events on/off. Includes the launch (filled) / comp-due (dashed) key.
+ * events on/off. A "+ Brand" chip opens the brand modal. Includes the launch
+ * (filled) / comp-due (dashed) key.
  */
 export function BrandLegend({
   brands,
   hiddenBrands,
   onToggle,
+  onAddBrand,
 }: {
   brands: Brand[];
   hiddenBrands: Set<string>;
   onToggle: (brandId: string) => void;
+  onAddBrand: () => void;
 }) {
   return (
     <div className="mb-[14px] flex flex-wrap items-center justify-between gap-2.5">
@@ -36,6 +39,13 @@ export function BrandLegend({
             </button>
           );
         })}
+        <button
+          type="button"
+          onClick={onAddBrand}
+          className="inline-flex items-center gap-[5px] rounded-[20px] border border-dashed border-line bg-white px-[11px] py-[5px] text-[12.5px] text-muted transition-colors hover:border-[#cfcbc0]"
+        >
+          <Plus size={13} /> Brand
+        </button>
       </div>
       <div className="flex gap-3.5 text-xs text-muted2">
         <span className="inline-flex items-center gap-1.5">

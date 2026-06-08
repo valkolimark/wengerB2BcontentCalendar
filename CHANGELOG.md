@@ -3,6 +3,46 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## 0.4.0 — Cycle 4: CRUD + searchable pickers + orphan adoption + global search
+
+The read-only home screen becomes a working editor, persisted to Supabase.
+
+### Added
+
+- **Server Actions** (`src/lib/actions.ts`): `createBrand`/`updateBrand`/
+  `deleteBrand` (delete refuses if any campaign uses the brand),
+  `createInitiative`/`updateInitiative`/`deleteInitiative` (delete relies on
+  `ON DELETE SET NULL` → campaigns become orphans), `createCampaign`/
+  `updateCampaign`/`deleteCampaign`, and `adoptCampaigns`. Each validates
+  required fields and `revalidatePath('/')`.
+- **Modals** (`src/components/modals/`, shadcn `Dialog`):
+  - `BrandModal` — add a brand (color → derived tint/text) with live preview;
+    delete existing (disabled + reason when in use).
+  - `InitiativeModal` — add/edit (name/owner/status), members list, and a
+    campaign adopt search (orphans first, widening on query). On save,
+    `adoptCampaigns` reparents the queued campaigns.
+  - `CampaignModal` — searchable initiative picker, brand select, fields, a live
+    UTM preview (source/medium from vendor/channel, campaign = SF code), and on
+    create a launch date + auto comp-due (launch − 10d, toggle to manual) that
+    seed events. Edit is metadata-only; existing events are untouched.
+- **Drawer write affordances:** edit + delete buttons in both drawer modes.
+- **Orphan surfacing:** `OrphanBar` on the home screen lists unassigned
+  campaigns and opens each for adoption.
+- **Global search:** `GlobalSearch` over initiatives + campaigns — filters the
+  cards (initiative stays if a child matches) and surfaces matching campaigns in
+  a results strip (click → open the campaign drawer), with clear + count.
+- **New-entry points:** "+ Initiative" / "+ Campaign" in the initiatives header;
+  "+ Brand" in the legend.
+- `CampaignInput` type; `SWATCHES` (brands.ts) and `CHANNELS` (utm.ts).
+
+### Changed
+
+- Writes use Server Actions + `router.refresh()`; client state (open modal,
+  `selected`, search query) stays client-side.
+- `InitiativeCards` now renders a passed-in (filtered) list; the section header
+  moved to `CalendarHome` to host the +buttons, search, and orphan bar.
+- Financials still render for everyone behind `canSeeFinancials` (Cycle 5).
+
 ## 0.3.0 — Cycle 3: Initiative cards + detail drawer
 
 The home screen becomes navigable: initiative cards under the calendar and a
