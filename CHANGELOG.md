@@ -3,6 +3,29 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.2.0] — Cycle 9 — 2026-06-08 — Salesforce campaign fields + source rule
+
+Capture a campaign's real Salesforce identity and force `utm_source =
+salesforce` when present.
+
+### Added
+
+- **Schema** (`0005_sf_fields.sql`): `sf_id` and `sf_name` on `campaigns`
+  (nullable, metadata only — not part of the UTM string). `sf_code` unchanged
+  (still `utm_campaign`).
+- **Source rule** (`resolveSource` in `utm.ts`): `utm_source = "salesforce"` if
+  any of `sf_code`/`sf_id`/`sf_name` is non-empty; otherwise the existing
+  vendor/channel derivation. Enforced in both the modal preview and the server
+  action via one shared resolver (no client/server drift).
+- **CampaignModal:** SF Campaign ID + Name inputs grouped with the SF code; the
+  live UTM preview flips to `salesforce` as soon as any SF field is filled and
+  reverts when all are cleared (with a "source = salesforce" badge).
+- **DetailDrawer:** SF ID + Name surfaced in the campaign facts (when present).
+- **Round-trip:** export adds **SF ID** / **SF Name** columns; import reads them
+  (campaigns still match by `sf_code`). Additive/idempotent — no duplicates.
+- Types: `sf_id`/`sf_name` added to `Campaign`, `CampaignInput`, and the import
+  payload.
+
 ## [1.1.0] — Cycle 8 — 2026-06-08 — Theming & branding
 
 A real light/dark theme, fixed text contrast, and Wenger branding.

@@ -32,6 +32,8 @@ export type ImportPayload = {
     segment: string;
     owner: string;
     sf_code: string;
+    sf_id: string;
+    sf_name: string;
     utm_source: string;
     utm_medium: string;
     utm_content: string;
@@ -124,6 +126,10 @@ export type Campaign = {
   segment: string;
   owner: string;
   sf_code: string;
+  // Salesforce identity — metadata only; not part of the UTM string. When any
+  // of sf_code/sf_id/sf_name is present, utm_source is forced to "salesforce".
+  sf_id: string | null;
+  sf_name: string | null;
   utm_source: string;
   utm_medium: string;
   utm_content: string;
@@ -145,5 +151,7 @@ export type CampaignInput = {
   segment: string;
   owner: string;
   sf_code: string;
+  sf_id: string;
+  sf_name: string;
   utm_content: string;
 };

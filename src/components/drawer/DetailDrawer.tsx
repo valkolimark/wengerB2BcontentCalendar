@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Pencil,
   Trash2,
+  Hash,
 } from "lucide-react";
 import type {
   Brand,
@@ -258,6 +259,12 @@ function CampaignBody({
           <Fact ic={<Users size={14} />} k="Segment" v={campaign.segment} />
           <Fact ic={<Mail size={14} />} k="Owner" v={campaign.owner} />
           <Fact ic={<Target size={14} />} k="SF code" v={campaign.sf_code} mono />
+          {campaign.sf_id && (
+            <Fact ic={<Hash size={14} />} k="SF ID" v={campaign.sf_id} mono />
+          )}
+          {campaign.sf_name && (
+            <Fact ic={<Building2 size={14} />} k="SF name" v={campaign.sf_name} />
+          )}
           {canSeeFinancials && (
             <>
               <Fact ic={<Users size={14} />} k="Leads" v={String(campaign.leads || 0)} />

@@ -10,7 +10,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import type { Brand, CampaignWithEvents, Initiative } from "@/lib/types";
-import { CHANNELS, assembleUtm, deriveMedium, deriveSource } from "@/lib/utm";
+import {
+  CHANNELS,
+  assembleUtm,
+  deriveMedium,
+  hasSalesforce,
+  resolveSource,
+} from "@/lib/utm";
 import { addDays, key, parseISO } from "@/lib/dates";
 import { createCampaign, updateCampaign } from "@/lib/actions";
 import { Field, inputClass } from "./Field";
@@ -44,6 +50,8 @@ export function CampaignModal({
   const [segment, setSegment] = useState(campaign?.segment ?? "");
   const [owner, setOwner] = useState(campaign?.owner ?? "");
   const [sf, setSf] = useState(campaign?.sf_code ?? "");
+  const [sfId, setSfId] = useState(campaign?.sf_id ?? "");
+  const [sfName, setSfName] = useState(campaign?.sf_name ?? "");
   const [content, setContent] = useState(campaign?.utm_content ?? "");
   const [launch, setLaunch] = useState("");
   const [autoComp, setAutoComp] = useState(true);
@@ -51,7 +59,9 @@ export function CampaignModal({
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  const source = deriveSource(vendor, channel);
+  const sfInfo = { sf_code: sf, sf_id: sfId, sf_name: sfName };
+  const onSalesforce = hasSalesforce(sfInfo);
+  const source = resolveSource({ vendor, channel, ...sfInfo });
   const medium = deriveMedium(channel);
   const compAuto = useMemo(
     () => (launch ? key(addDays(parseISO(launch), -10)) : ""),
@@ -85,6 +95,8 @@ export function CampaignModal({
       segment,
       owner,
       sf_code: sf,
+      sf_id: sfId,
+      sf_name: sfName,
       utm_content: content,
     };
     start(async () => {
@@ -184,24 +196,49 @@ export function CampaignModal({
           </Field>
         </div>
 
+        {/* Salesforce identity. Any field present forces utm_source=salesforce. */}
+        <div className="mb-2 mt-1.5 flex items-center text-[11px] font-semibold uppercase tracking-[0.05em] text-faint">
+          Salesforce
+          {onSalesforce && (
+            <span className="ml-1.5 rounded-md bg-[#e7f1e6] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-[#2e6b3e]">
+              source = salesforce
+            </span>
+          )}
+        </div>
+        <Field label="SF campaign code">
+          <input
+            className={`${inputClass} font-mono`}
+            value={sf}
+            onChange={(e) => setSf(e.target.value)}
+            placeholder={sfHint}
+          />
+        </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="SF campaign code">
+          <Field label="SF Campaign ID">
             <input
               className={`${inputClass} font-mono`}
-              value={sf}
-              onChange={(e) => setSf(e.target.value)}
-              placeholder={sfHint}
+              value={sfId}
+              onChange={(e) => setSfId(e.target.value)}
+              placeholder="701..."
             />
           </Field>
-          <Field label="utm_content">
+          <Field label="SF Campaign Name">
             <input
-              className={`${inputClass} font-mono`}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="wave1-urgency"
+              className={inputClass}
+              value={sfName}
+              onChange={(e) => setSfName(e.target.value)}
+              placeholder="FY26 Prop 28 — Email"
             />
           </Field>
         </div>
+        <Field label="utm_content">
+          <input
+            className={`${inputClass} font-mono`}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="wave1-urgency"
+          />
+        </Field>
 
         {!editing && (
           <div className="grid grid-cols-2 gap-3">

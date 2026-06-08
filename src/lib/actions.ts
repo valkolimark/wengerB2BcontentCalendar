@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { tintOf, textOf } from "@/lib/brands";
-import { slug, deriveSource, deriveMedium } from "@/lib/utm";
+import { slug, deriveMedium, resolveSource } from "@/lib/utm";
 import { requireStaff, requireAdmin } from "@/lib/auth";
 import type {
   CampaignInput,
@@ -154,9 +154,24 @@ export async function adoptCampaigns(
 
 function utmFields(input: CampaignInput) {
   return {
-    utm_source: deriveSource(input.vendor, input.channel),
+    utm_source: resolveSource({
+      vendor: input.vendor,
+      channel: input.channel,
+      sf_code: input.sf_code,
+      sf_id: input.sf_id,
+      sf_name: input.sf_name,
+    }),
     utm_medium: deriveMedium(input.channel),
     utm_content: input.utm_content.trim(),
+  };
+}
+
+// Shared SF identity columns (stored as null when blank).
+function sfFields(input: { sf_code: string; sf_id: string; sf_name: string }) {
+  return {
+    sf_code: input.sf_code.trim(),
+    sf_id: input.sf_id.trim() || null,
+    sf_name: input.sf_name.trim() || null,
   };
 }
 
@@ -180,7 +195,7 @@ export async function createCampaign(
       vendor: input.vendor,
       segment: input.segment.trim(),
       owner: input.owner.trim() || "Unassigned",
-      sf_code: input.sf_code.trim(),
+      ...sfFields(input),
       ...utmFields(input),
     })
     .select("id")
@@ -233,7 +248,7 @@ export async function updateCampaign(id: string, input: CampaignInput) {
       vendor: input.vendor,
       segment: input.segment.trim(),
       owner: input.owner.trim() || "Unassigned",
-      sf_code: input.sf_code.trim(),
+      ...sfFields(input),
       ...utmFields(input),
     })
     .eq("id", id);
@@ -424,6 +439,8 @@ export async function importWorkbook(
       segment: c.segment,
       owner: c.owner || "Unassigned",
       sf_code: sf,
+      sf_id: c.sf_id?.trim() || null,
+      sf_name: c.sf_name?.trim() || null,
       utm_source: c.utm_source,
       utm_medium: c.utm_medium,
       utm_content: c.utm_content,

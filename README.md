@@ -14,10 +14,11 @@ which is the UX source of truth.
 
 ## Project status
 
-**v1.1.0 — Cycle 8: theming & branding.** A real light/dark toggle that
-re-skins the whole app (no flash on load), WCAG-AA text contrast in both
-themes, a navy-gradient branded login, and the Wenger logos in-app. Built on
-**v1.0.0** (production-ready: full app + auth + RLS gating + XLSX + hardening).
+**v1.2.0 — Cycle 9: Salesforce fields.** Campaigns now carry an **SF Campaign
+ID** and **SF Campaign Name** (alongside the SF code), and any Salesforce
+identity forces `utm_source = salesforce`. Built on **v1.1.0** (light/dark
+theming + branding) and **v1.0.0** (production-ready: full app + auth + RLS
+gating + XLSX + hardening).
 See [Theming & branding](#theming--branding), [Deployment](#deployment-vercel),
 the [Go-live checklist](#go-live-checklist),
 [Authentication & roles](#authentication--roles), [Spreadsheet
@@ -33,10 +34,16 @@ round-trip](#spreadsheet-export--import), and [`cycles/`](cycles/).
 - **Initiatives:** name / owner / status, with a members list and a campaign
   **adopt** search (orphans first, widening on query). Deleting an initiative
   leaves its campaigns as surfaced orphans, not deleted.
-- **Campaigns:** a searchable initiative picker, brand select, and a **live UTM
-  preview** (source/medium derive from vendor + channel; campaign = SF code).
-  On create, a launch date + auto comp-due (launch − 10d, toggle to manual)
-  seed the events. Editing changes metadata only — existing events are kept.
+- **Campaigns:** a searchable initiative picker, brand select, Salesforce
+  identity (**SF campaign code**, **SF Campaign ID**, **SF Campaign Name**), and
+  a **live UTM preview**. `utm_medium` derives from channel and `utm_campaign` =
+  SF code. **`utm_source` rule:** if a campaign carries *any* Salesforce field
+  (code / ID / name), `utm_source` is forced to **`salesforce`**; otherwise it
+  derives from vendor + channel. The rule is enforced in both the modal preview
+  and the server action (one shared resolver, so they can't drift). SF ID/Name
+  are metadata only — they never enter the UTM string. On create, a launch date
+  + auto comp-due (launch − 10d, toggle to manual) seed the events. Editing
+  changes metadata only — existing events are kept.
 - **Orphans** (campaigns with no initiative) surface in a bar on the home
   screen and can be adopted into an initiative.
 - **Global search** filters the initiative cards and surfaces matching

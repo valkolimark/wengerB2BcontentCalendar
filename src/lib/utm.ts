@@ -41,6 +41,28 @@ export const deriveSource = (vendor: string, channel: string): string => {
   return slug(vendor);
 };
 
+/** Whether a campaign carries any Salesforce identity (code / id / name). */
+export const hasSalesforce = (sf: {
+  sf_code?: string | null;
+  sf_id?: string | null;
+  sf_name?: string | null;
+}): boolean =>
+  [sf.sf_code, sf.sf_id, sf.sf_name].some((v) => (v ?? "").trim() !== "");
+
+/**
+ * Resolve utm_source. If a campaign carries any Salesforce identity, the source
+ * is forced to "salesforce"; otherwise it derives from vendor/channel as before.
+ * Used by BOTH the modal preview and the server action so they can't diverge.
+ */
+export const resolveSource = (params: {
+  vendor: string;
+  channel: string;
+  sf_code?: string | null;
+  sf_id?: string | null;
+  sf_name?: string | null;
+}): string =>
+  hasSalesforce(params) ? "salesforce" : deriveSource(params.vendor, params.channel);
+
 /** Assemble the canonical UTM query string for a campaign. */
 export const assembleUtm = (params: {
   source: string;

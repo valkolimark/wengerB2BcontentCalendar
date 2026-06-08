@@ -97,6 +97,8 @@ export async function parseWorkbook(file: File): Promise<ParseResult> {
       segment: str(r.Segment),
       owner: str(r.Owner) || "Unassigned",
       sf_code: sf,
+      sf_id: str(r["SF ID"]),
+      sf_name: str(r["SF Name"]),
       utm_source: str(r.utm_source),
       utm_medium: str(r.utm_medium),
       utm_content: str(r.utm_content),

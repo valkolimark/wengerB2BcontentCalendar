@@ -39,6 +39,8 @@ export function buildWorkbook({
       Segment: c.segment,
       Owner: c.owner,
       "SF Code": c.sf_code,
+      "SF ID": c.sf_id ?? "",
+      "SF Name": c.sf_name ?? "",
       utm_source: c.utm_source,
       utm_medium: c.utm_medium,
       utm_content: c.utm_content,
