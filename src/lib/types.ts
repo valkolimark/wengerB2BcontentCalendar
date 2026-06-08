@@ -17,6 +17,45 @@ export type Profile = {
 // Drawer selection — shared across the calendar, cards, and drawer.
 export type Selected = { kind: "initiative" | "campaign"; id: string } | null;
 
+// Normalized payload parsed from an uploaded workbook (client-side) and handed
+// to the importWorkbook Server Action. Campaign natural key = sf_code; events
+// matched by (campaign_sf, type, date). leads/pipeline present only when the
+// file carries financial columns.
+export type ImportPayload = {
+  initiatives: { name: string; owner: string; status: string }[];
+  campaigns: {
+    initiative: string; // initiative name
+    brand: string; // brand label (or id)
+    name: string;
+    channel: string;
+    vendor: string;
+    segment: string;
+    owner: string;
+    sf_code: string;
+    utm_source: string;
+    utm_medium: string;
+    utm_content: string;
+    leads?: number;
+    pipeline?: number;
+  }[];
+  events: {
+    campaign_sf: string;
+    type: EventType;
+    date: string; // ISO yyyy-mm-dd
+    label: string;
+  }[];
+};
+
+// What importWorkbook applied (returned to the client after confirm).
+export type ImportReport = {
+  brands: { added: number };
+  initiatives: { added: number; updated: number };
+  campaigns: { added: number; updated: number };
+  events: { added: number; skipped: number };
+  financials: { updated: number };
+  errors: string[];
+};
+
 export type Brand = {
   id: string;
   label: string;

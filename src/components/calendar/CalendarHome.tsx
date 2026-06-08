@@ -26,6 +26,8 @@ import { OrphanBar } from "@/components/home/OrphanBar";
 import { BrandModal } from "@/components/modals/BrandModal";
 import { InitiativeModal } from "@/components/modals/InitiativeModal";
 import { CampaignModal } from "@/components/modals/CampaignModal";
+import { DataMenu } from "@/components/data/DataMenu";
+import { ImportModal } from "@/components/data/ImportModal";
 
 export type CalendarView = "month" | "week" | "day";
 
@@ -72,6 +74,7 @@ export function CalendarHome({
   const [hiddenBrands, setHiddenBrands] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Selected>(null);
   const [modal, setModal] = useState<ModalState>(null);
+  const [importing, setImporting] = useState(false);
   const [q, setQ] = useState("");
   const [, startDelete] = useTransition();
 
@@ -231,6 +234,14 @@ export function CalendarHome({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <DataMenu
+            brands={brands}
+            initiatives={initiatives}
+            campaigns={campaigns}
+            canSeeFinancials={canSeeFinancials}
+            isAdmin={role === "admin"}
+            onImport={() => setImporting(true)}
+          />
           {role === "admin" && (
             <Link
               href="/team"
@@ -408,6 +419,14 @@ export function CalendarHome({
           initiatives={initiatives}
           brands={brands}
           onClose={() => setModal(null)}
+        />
+      )}
+
+      {importing && (
+        <ImportModal
+          initiatives={initiatives}
+          campaigns={campaigns}
+          onClose={() => setImporting(false)}
         />
       )}
     </div>

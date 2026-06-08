@@ -6,7 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import { tintOf, textOf } from "@/lib/brands";
 import { slug, deriveSource, deriveMedium } from "@/lib/utm";
 import { requireStaff, requireAdmin } from "@/lib/auth";
-import type { CampaignInput, Role } from "@/lib/types";
+import type {
+  CampaignInput,
+  ImportPayload,
+  ImportReport,
+  Role,
+} from "@/lib/types";
 
 /* --------------------------------- brands -------------------------------- */
 
@@ -277,4 +282,214 @@ export async function setFinancialAccess(userId: string, canSee: boolean) {
     .eq("id", userId);
   if (error) throw new Error(error.message);
   revalidatePath("/team");
+}
+
+/* --------------------------------- import -------------------------------- */
+
+const IMPORT_DEFAULT_DOT = "#6B3FA0";
+
+// Admin-only, additive/update-only, idempotent upsert from a parsed workbook.
+// Natural keys: brands by label/id, initiatives by name, campaigns by sf_code,
+// events by (campaign, type, date). No deletes. RLS is the backstop.
+export async function importWorkbook(
+  payload: ImportPayload
+): Promise<ImportReport> {
+  await requireAdmin();
+  const supabase = await createClient();
+  const report: ImportReport = {
+    brands: { added: 0 },
+    initiatives: { added: 0, updated: 0 },
+    campaigns: { added: 0, updated: 0 },
+    events: { added: 0, skipped: 0 },
+    financials: { updated: 0 },
+    errors: [],
+  };
+
+  // Current state for matching.
+  const [brandsRes, initiativesRes, campaignsRes, eventsRes] = await Promise.all([
+    supabase.from("brands").select("id, label"),
+    supabase.from("initiatives").select("id, name"),
+    supabase.from("campaigns").select("id, sf_code"),
+    supabase.from("events").select("campaign_id, type, date"),
+  ]);
+
+  const brandById = new Set<string>();
+  const brandByLabel = new Map<string, string>();
+  for (const b of brandsRes.data ?? []) {
+    brandById.add(b.id);
+    brandByLabel.set(b.label.toLowerCase(), b.id);
+  }
+  const initByName = new Map<string, string>();
+  for (const i of initiativesRes.data ?? [])
+    initByName.set(i.name.toLowerCase(), i.id);
+  const campBySf = new Map<string, string>();
+  for (const c of campaignsRes.data ?? [])
+    if (c.sf_code) campBySf.set(c.sf_code, c.id);
+  const eventKeys = new Set<string>();
+  for (const e of eventsRes.data ?? [])
+    eventKeys.add(`${e.campaign_id}|${e.type}|${e.date}`);
+
+  const ensureBrand = async (value: string): Promise<string | null> => {
+    const v = value.trim();
+    if (!v) return null;
+    if (brandById.has(v)) return v;
+    const byLabel = brandByLabel.get(v.toLowerCase());
+    if (byLabel) return byLabel;
+    const id = slug(v) || v.toLowerCase();
+    if (brandById.has(id)) return id;
+    const { error } = await supabase.from("brands").insert({
+      id,
+      label: v,
+      dot: IMPORT_DEFAULT_DOT,
+      tint: tintOf(IMPORT_DEFAULT_DOT),
+      text: textOf(IMPORT_DEFAULT_DOT),
+    });
+    if (error) {
+      report.errors.push(`Brand "${v}": ${error.message}`);
+      return null;
+    }
+    brandById.add(id);
+    brandByLabel.set(v.toLowerCase(), id);
+    report.brands.added++;
+    return id;
+  };
+
+  const ensureInitiative = async (name: string): Promise<string | null> => {
+    const n = name.trim();
+    if (!n) return null;
+    const existing = initByName.get(n.toLowerCase());
+    if (existing) return existing;
+    const { data, error } = await supabase
+      .from("initiatives")
+      .insert({ name: n, owner: "Unassigned", status: "Planning" })
+      .select("id")
+      .single();
+    if (error || !data) {
+      report.errors.push(`Initiative "${n}": ${error?.message ?? "insert failed"}`);
+      return null;
+    }
+    initByName.set(n.toLowerCase(), data.id);
+    report.initiatives.added++;
+    return data.id;
+  };
+
+  // Initiatives sheet (owner/status updates for existing).
+  for (const i of payload.initiatives) {
+    const name = i.name.trim();
+    if (!name) continue;
+    const existing = initByName.get(name.toLowerCase());
+    if (existing) {
+      const { error } = await supabase
+        .from("initiatives")
+        .update({ owner: i.owner || "Unassigned", status: i.status || "Planning" })
+        .eq("id", existing);
+      if (error) report.errors.push(`Initiative "${name}": ${error.message}`);
+      else report.initiatives.updated++;
+    } else {
+      const { data, error } = await supabase
+        .from("initiatives")
+        .insert({ name, owner: i.owner || "Unassigned", status: i.status || "Planning" })
+        .select("id")
+        .single();
+      if (error || !data) {
+        report.errors.push(`Initiative "${name}": ${error?.message ?? "insert failed"}`);
+      } else {
+        initByName.set(name.toLowerCase(), data.id);
+        report.initiatives.added++;
+      }
+    }
+  }
+
+  // Campaigns (natural key = sf_code) + financials.
+  for (const c of payload.campaigns) {
+    const name = c.name.trim();
+    const sf = c.sf_code.trim();
+    if (!name || !sf) {
+      report.errors.push(`Campaign "${name || sf || "?"}": missing name or SF code.`);
+      continue;
+    }
+    const brandId = await ensureBrand(c.brand);
+    if (!brandId) {
+      report.errors.push(`Campaign "${name}": missing/invalid brand.`);
+      continue;
+    }
+    const initiativeId = await ensureInitiative(c.initiative);
+
+    const fields = {
+      initiative_id: initiativeId,
+      brand_id: brandId,
+      name,
+      channel: c.channel,
+      vendor: c.vendor,
+      segment: c.segment,
+      owner: c.owner || "Unassigned",
+      sf_code: sf,
+      utm_source: c.utm_source,
+      utm_medium: c.utm_medium,
+      utm_content: c.utm_content,
+    };
+
+    let campaignId = campBySf.get(sf);
+    if (campaignId) {
+      const { error } = await supabase.from("campaigns").update(fields).eq("id", campaignId);
+      if (error) {
+        report.errors.push(`Campaign "${name}": ${error.message}`);
+        continue;
+      }
+      report.campaigns.updated++;
+    } else {
+      const { data, error } = await supabase
+        .from("campaigns")
+        .insert(fields)
+        .select("id")
+        .single();
+      if (error || !data) {
+        report.errors.push(`Campaign "${name}": ${error?.message ?? "insert failed"}`);
+        continue;
+      }
+      const newId = data.id as string;
+      campaignId = newId;
+      campBySf.set(sf, newId);
+      report.campaigns.added++;
+    }
+
+    // Financials only when the file carries them (admin-only via RLS).
+    if (campaignId && (c.leads !== undefined || c.pipeline !== undefined)) {
+      const { error } = await supabase.from("campaign_financials").upsert(
+        { campaign_id: campaignId, leads: c.leads ?? 0, pipeline: c.pipeline ?? 0 },
+        { onConflict: "campaign_id" }
+      );
+      if (error) report.errors.push(`Financials for "${name}": ${error.message}`);
+      else report.financials.updated++;
+    }
+  }
+
+  // Events matched by (campaign, type, date) — idempotent.
+  for (const e of payload.events) {
+    const campaignId = campBySf.get(e.campaign_sf.trim());
+    if (!campaignId) {
+      report.errors.push(`Event references unknown campaign SF "${e.campaign_sf}".`);
+      continue;
+    }
+    const k = `${campaignId}|${e.type}|${e.date}`;
+    if (eventKeys.has(k)) {
+      report.events.skipped++;
+      continue;
+    }
+    const { error } = await supabase.from("events").insert({
+      campaign_id: campaignId,
+      type: e.type,
+      date: e.date,
+      label: e.label,
+    });
+    if (error) {
+      report.errors.push(`Event "${e.label}": ${error.message}`);
+      continue;
+    }
+    eventKeys.add(k);
+    report.events.added++;
+  }
+
+  revalidatePath("/");
+  return report;
 }

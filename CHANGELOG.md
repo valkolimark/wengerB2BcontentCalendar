@@ -3,6 +3,37 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## 0.6.0 — Cycle 6: XLSX export / import
+
+Round-trip the data to and from a `.xlsx` workbook (SheetJS) for the existing
+spreadsheet workflow.
+
+### Added
+
+- **XLSX helpers:** `xlsx` dependency (SheetJS); `src/lib/xlsx-export.ts`
+  (build a multi-sheet workbook client-side) and `src/lib/xlsx-import.ts`
+  (parse + validate + diff an uploaded workbook — no writes).
+- **Export** — Initiatives / Campaigns / Events sheets; Campaigns carries the
+  assembled UTM (computed at export, never stored) and `Leads`/`Pipeline` only
+  when entitled. Filename `wenger-content-tracker_YYYY-MM-DD.xlsx`. Two modes:
+  **Full** (financials when entitled) and **JMC view** (financials omitted).
+- **Export UI** — a **Data** menu in the app bar (Full export / JMC view);
+  client-side build → download, no server round-trip.
+- **Import (admin)** — a file picker that parses client-side, validates the
+  sheets/columns, and shows an add/update **preview** before anything is
+  written; an admin-only `importWorkbook` Server Action upserts brands (by
+  label/id), initiatives (by name), campaigns (by SF code), events (by
+  campaign+type+date), and financials when present. Additive/update-only — no
+  deletes — and idempotent. Returns a report of applied + skipped/failed rows.
+- `ImportPayload` and `ImportReport` types.
+
+### Security / safety
+
+- SheetJS runs client-side; persistence still flows through role-checked Server
+  Actions, so RLS applies (import rejects non-admins; financial writes are
+  admin-only). A non-entitled user's export can't contain dollars because the
+  data isn't in their session.
+
 ## 0.5.0 — Cycle 5: Auth + RLS financial gating
 
 Real authentication and server-enforced financial access control.

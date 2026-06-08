@@ -14,11 +14,13 @@ which is the UX source of truth.
 
 ## Project status
 
-Through **Cycle 5 — Auth + RLS financial gating**: the app requires login, and
-financial visibility (leads + pipeline $) is enforced server-side via
-Row-Level Security — the numbers are *absent from the response* for anyone not
-entitled, not merely hidden. See [Authentication & roles](#authentication--roles)
-and [`cycles/`](cycles/).
+Through **Cycle 6 — XLSX export / import**: the app round-trips its data to and
+from a `.xlsx` workbook (SheetJS) for the existing spreadsheet/SharePoint
+workflow. Export respects financial entitlement (with a scrubbed JMC view);
+import is admin-only, previewed before applying, and idempotent. Login is
+required and financials are RLS-gated (Cycle 5). See
+[Authentication & roles](#authentication--roles), [Spreadsheet
+round-trip](#spreadsheet-export--import), and [`cycles/`](cycles/).
 
 ### Editing
 
@@ -157,6 +159,38 @@ not on `campaigns`. **Row-Level Security** is the backstop:
 Server Actions also re-check the caller's role server-side (defense in depth);
 RLS is the authoritative backstop. The client role flag only hides UI.
 
+## Spreadsheet export / import
+
+The app-bar **Data** menu round-trips everything through a `.xlsx` workbook
+(SheetJS, client-side). Persistence still goes through role-checked Server
+Actions, so RLS applies — the browser never writes to Supabase directly.
+
+### Export (anyone)
+
+Builds a workbook with **Initiatives**, **Campaigns**, and **Events** sheets;
+Campaigns includes the assembled UTM (computed at export, never stored).
+Filename: `wenger-content-tracker_YYYY-MM-DD.xlsx`. Two modes:
+
+- **Full export** — includes `Leads` / `Pipeline` **only when you're entitled**
+  to financials. A non-entitled user's export has no financial data at all
+  (it isn't in their session to begin with).
+- **JMC view** — omits the financial columns entirely, for sharing externally.
+
+### Import (admin only)
+
+Pick an `.xlsx`; it's parsed and validated **in the browser** and shown as a
+preview (counts to add vs. update, plus skipped rows) — **nothing is written
+until you confirm**. On confirm, `importWorkbook` (admin-only; RLS is the
+backstop) upserts:
+
+- **brands** by label/id (created if absent), **initiatives** by name,
+  **campaigns** by **SF code** (the natural key), **events** by
+  (campaign, type, date), and **financials** when the file carries them.
+
+Import is **additive/update-only — no deletes — and idempotent**: re-importing
+the same file changes nothing (campaigns match by SF code; events match by
+campaign + type + date, so nothing duplicates).
+
 ## Project layout
 
 ```
@@ -171,7 +205,10 @@ src/components/drawer/         Detail drawer (DetailDrawer — campaign + initia
 src/components/modals/         CRUD modals (Brand/Initiative/Campaign) + pickers
 src/components/home/           Global search + orphan bar
 src/components/team/           Team table (role + financial-flag management)
+src/components/data/           Data menu (export) + import modal (preview)
 src/lib/types.ts               Domain types
+src/lib/xlsx-export.ts         Build a workbook from loaded data (client)
+src/lib/xlsx-import.ts         Parse + validate + diff an uploaded workbook (client)
 src/lib/auth.ts                Session/profile helpers + role guards
 src/lib/brands.ts              Brand tokens + status colors + swatches
 src/lib/utm.ts                 UTM derivation + assembly + channels
