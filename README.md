@@ -14,22 +14,29 @@ which is the UX source of truth.
 
 ## Project status
 
-Through **Cycle 2 — Calendar home**: `/` is the real calendar-first home screen
-— app bar, a Day/Week/Month toolbar, a brand-filter legend, and a color-coded
-calendar driven by live Supabase data. Clickable events / detail drawer,
-initiative cards, and CRUD come in later cycles. See [`cycles/`](cycles/) for
-the per-cycle plans.
+Through **Cycle 3 — Initiative cards + detail drawer**: `/` is a navigable,
+read-only home screen — the calendar plus initiative cards plus a clickable
+detail drawer, all driven by live Supabase data. Add/edit/delete (CRUD) and
+auth come in later cycles. See [`cycles/`](cycles/) for the per-cycle plans.
 
-### The calendar home
+### The home screen
 
-`/` opens on the **Month** view, defaulting to **June 2026** (where the seed
-data lives) so it shows populated on first load:
+`/` opens on the calendar **Month** view, defaulting to **June 2026** (where the
+seed data lives) so it shows populated on first load:
 
 - **Day / Week / Month** segmented control switches views; prev/next navigates
   by day/week/month; **Today** jumps to the real current month.
 - Events are color-coded by brand. **Launches** render filled; **comp-due**
-  markers render dashed.
-- Click a brand in the legend to hide/show that brand's events live.
+  markers render dashed. Click a brand in the legend to hide/show its events.
+- **Initiative cards** sit under the calendar, sorted by urgency. Each shows a
+  progress rollup ("X of N sent"), next milestone, leads + pipeline, owner
+  initials, and — for co-branded initiatives — a split accent bar with every
+  brand's color.
+- **Click anything** — a calendar event, a day-agenda row, or a card — to open
+  the **detail drawer**. Campaign mode shows the facts, a timeline, and an
+  auto-assembled UTM string (with copy); initiative mode lists child campaigns
+  you can drill into, with a breadcrumb back. Close via the scrim, the X, or
+  **Esc**.
 
 ## Setup
 
@@ -80,12 +87,16 @@ color-coded by brand, pulled live from Supabase.
 ```
 reference/ContentTracker.jsx   Prototype — UX + data source of truth
 src/app/page.tsx               Home (server) — fetches data, renders CalendarHome
-src/components/calendar/       Calendar UI (CalendarHome, Toolbar, views, chips)
+src/components/calendar/       Calendar UI (CalendarHome shell, Toolbar, views, chips)
+src/components/initiative/     Initiative cards (InitiativeCards, InitiativeCard)
+src/components/drawer/         Detail drawer (DetailDrawer — campaign + initiative)
 src/lib/types.ts               Domain types
 src/lib/brands.ts              Brand tokens + status colors
 src/lib/utm.ts                 UTM derivation + assembly
 src/lib/dates.ts               Date key/parse/format + grid math
-src/lib/queries.ts             Server data access (getCalendarData)
+src/lib/rollups.ts             Initiative rollups + urgency sort
+src/lib/format.ts              Display formatters (money, initials)
+src/lib/queries.ts             Server data access (getHomeData)
 src/lib/supabase/              Server + browser Supabase clients
 supabase/migrations/           SQL schema
 supabase/seed.sql              Sample data (generated)

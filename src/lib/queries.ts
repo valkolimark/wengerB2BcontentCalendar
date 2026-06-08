@@ -1,57 +1,49 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Brand, CalendarEvent, EventType } from "@/lib/types";
+import type {
+  Brand,
+  CampaignWithEvents,
+  EventLite,
+  Initiative,
+} from "@/lib/types";
 
-// Shape of an events row with its campaign embedded (events → campaigns join).
-type EventJoinRow = {
-  id: string;
-  date: string;
-  type: EventType;
-  label: string;
-  campaign:
-    | { id: string; name: string; brand_id: string }
-    | { id: string; name: string; brand_id: string }[]
-    | null;
+// Row shape from `campaigns.select('*, events(...)')`.
+type CampaignJoinRow = Omit<CampaignWithEvents, "events"> & {
+  events: EventLite[] | null;
 };
 
 /**
- * Calendar data for the home screen: all brands, plus every event flattened
- * from the events → campaigns → brands relationship into a render-ready shape.
+ * Home-screen data: all brands, initiatives, and campaigns — each campaign
+ * carrying its full detail and its nested events. The calendar derives its
+ * by-day event map by flattening campaigns → events client-side.
  * Server-side; reads run with the anon key (no RLS until Cycle 5).
  */
-export async function getCalendarData(): Promise<{
+export async function getHomeData(): Promise<{
   brands: Brand[];
-  events: CalendarEvent[];
+  initiatives: Initiative[];
+  campaigns: CampaignWithEvents[];
 }> {
   const supabase = await createClient();
 
-  const [brandsRes, eventsRes] = await Promise.all([
+  const [brandsRes, initiativesRes, campaignsRes] = await Promise.all([
     supabase.from("brands").select("*").order("label"),
+    supabase.from("initiatives").select("*").order("name"),
     supabase
-      .from("events")
-      .select("id, date, type, label, campaign:campaigns(id, name, brand_id)")
-      .order("date"),
+      .from("campaigns")
+      .select("*, events(id, type, date, label)")
+      .order("name"),
   ]);
 
   if (brandsRes.error) throw new Error(brandsRes.error.message);
-  if (eventsRes.error) throw new Error(eventsRes.error.message);
+  if (initiativesRes.error) throw new Error(initiativesRes.error.message);
+  if (campaignsRes.error) throw new Error(campaignsRes.error.message);
 
-  const events: CalendarEvent[] = ((eventsRes.data ?? []) as EventJoinRow[]).flatMap(
-    (row) => {
-      const c = Array.isArray(row.campaign) ? row.campaign[0] : row.campaign;
-      if (!c) return []; // orphan/no campaign — skip on the calendar
-      return [
-        {
-          id: row.id,
-          date: row.date,
-          type: row.type,
-          label: row.label,
-          brandId: c.brand_id,
-          campaignId: c.id,
-          campaignName: c.name,
-        },
-      ];
-    }
-  );
+  const campaigns: CampaignWithEvents[] = (
+    (campaignsRes.data ?? []) as CampaignJoinRow[]
+  ).map((row) => ({ ...row, events: row.events ?? [] }));
 
-  return { brands: (brandsRes.data ?? []) as Brand[], events };
+  return {
+    brands: (brandsRes.data ?? []) as Brand[],
+    initiatives: (initiativesRes.data ?? []) as Initiative[],
+    campaigns,
+  };
 }

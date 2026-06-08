@@ -11,11 +11,13 @@ export function WeekView({
   eventsByDay,
   brandMap,
   today,
+  onSelect,
 }: {
   cursor: Date;
   eventsByDay: Record<string, CalendarEvent[]>;
   brandMap: Record<string, Brand>;
   today: Date | null;
+  onSelect: (campaignId: string) => void;
 }) {
   const days = weekDays(cursor);
 
@@ -45,7 +47,12 @@ export function WeekView({
               )}
             </div>
             {evs.map((ev) => (
-              <EventChip key={ev.id} event={ev} brand={brandMap[ev.brandId]} />
+              <EventChip
+                key={ev.id}
+                event={ev}
+                brand={brandMap[ev.brandId]}
+                onSelect={onSelect}
+              />
             ))}
           </div>
         );

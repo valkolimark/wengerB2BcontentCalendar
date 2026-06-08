@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## 0.3.0 — Cycle 3: Initiative cards + detail drawer
+
+The home screen becomes navigable: initiative cards under the calendar and a
+clickable detail drawer. Read-only — no CRUD yet.
+
+### Added
+
+- **Rollups:** `src/lib/rollups.ts` — pure `rollup(initiativeId, campaigns,
+  today)` → `{ brands, progress, sent, total, next, leads, pipeline, count }`,
+  plus `initiativesByUrgency()` (nearest upcoming milestone first). `today` is
+  injected so callers stay deterministic.
+- **Formatters:** `src/lib/format.ts` — `fmtMoney`, `initials`.
+- **Initiative cards** (`src/components/initiative/`): `InitiativeCards` +
+  `InitiativeCard`, under the calendar, sorted by urgency. Co-brand aware (split
+  accent bar + multiple dots); shows status, brand-colored progress, next
+  milestone, "X of N sent", leads + pipeline, owner initials. Clicking opens the
+  initiative drawer.
+- **Detail drawer** (`src/components/drawer/DetailDrawer.tsx`): slide-in panel,
+  two modes. Initiative mode → brand/co-brand header, status, owner, progress,
+  financials, child campaign list. Campaign mode → breadcrumb to parent, facts
+  (channel/vendor/segment/owner/SF code), financials, sorted event timeline, and
+  the auto-assembled UTM string (via `assembleUtm`, never stored) with a copy
+  button. Closes on scrim click, X, and Esc.
+- **Clickability:** `EventChip` and `DayView` rows open the drawer in campaign
+  mode. Shared `selected` state lifted to `CalendarHome`.
+
+### Changed
+
+- **Data layer:** `getCalendarData()` → `getHomeData()` returning
+  `{ brands, initiatives, campaigns }` with each campaign carrying full detail +
+  nested `events`. The calendar flattens `campaigns → events` client-side
+  (identical calendar behavior).
+- `today` is now server-provided (`todayKey` prop) for deterministic SSR,
+  replacing the Cycle 2 post-mount effect.
+- Financials render for everyone behind a single `canSeeFinancials` flag
+  (hardcoded `true`) — Cycle 5 wires it to RLS.
+- `CampaignWithEvents`, `EventLite`, and `Selected` types added.
+
 ## 0.2.0 — Cycle 2: Calendar home
 
 The calendar-first home screen, driven by live Supabase data.

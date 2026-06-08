@@ -4,6 +4,9 @@
 
 export type Role = "admin" | "viewer" | "jmc";
 
+// Drawer selection — shared across the calendar, cards, and drawer.
+export type Selected = { kind: "initiative" | "campaign"; id: string } | null;
+
 export type Brand = {
   id: string;
   label: string;
@@ -52,6 +55,14 @@ export type CalendarEvent = {
   campaignName: string;
 };
 
+// A campaign's own event, as nested under a campaign in getHomeData.
+export type EventLite = {
+  id: string;
+  type: EventType;
+  date: string; // ISO yyyy-mm-dd
+  label: string;
+};
+
 export type Campaign = {
   id: string;
   // Nullable on purpose: campaigns.initiative_id is ON DELETE SET NULL, so a
@@ -70,3 +81,6 @@ export type Campaign = {
   leads: number;
   pipeline: number;
 };
+
+// A campaign with its events nested — the shape returned by getHomeData.
+export type CampaignWithEvents = Campaign & { events: EventLite[] };

@@ -4,14 +4,16 @@ import type { Brand, CalendarEvent } from "@/lib/types";
 /**
  * A brand-tinted event chip. Launch = filled (brand tint bg, brand text,
  * hairline brand border); comp-due = transparent with a dashed brand border.
- * Display-only this cycle — the detail drawer arrives in Cycle 3.
+ * Clicking opens the campaign in the detail drawer.
  */
 export function EventChip({
   event,
   brand,
+  onSelect,
 }: {
   event: CalendarEvent;
   brand: Brand | undefined;
+  onSelect: (campaignId: string) => void;
 }) {
   const isLaunch = event.type === "launch";
   const dot = brand?.dot ?? "#A09E94";
@@ -19,8 +21,10 @@ export function EventChip({
   const text = brand?.text ?? "#4A4A45";
 
   return (
-    <div
-      className="mt-1 flex w-full items-center gap-1 rounded-[7px] px-1.5 py-[3px] text-[11px] font-medium"
+    <button
+      type="button"
+      onClick={() => onSelect(event.campaignId)}
+      className="mt-1 flex w-full items-center gap-1 rounded-[7px] px-1.5 py-[3px] text-left text-[11px] font-medium transition-[filter,transform] hover:brightness-[.96] hover:translate-x-px"
       style={{
         background: isLaunch ? tint : "transparent",
         color: text,
@@ -36,6 +40,6 @@ export function EventChip({
       <span className="overflow-hidden text-ellipsis whitespace-nowrap">
         {event.label}
       </span>
-    </div>
+    </button>
   );
 }

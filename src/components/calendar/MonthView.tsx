@@ -13,11 +13,13 @@ export function MonthView({
   eventsByDay,
   brandMap,
   today,
+  onSelect,
 }: {
   cursor: Date;
   eventsByDay: Record<string, CalendarEvent[]>;
   brandMap: Record<string, Brand>;
   today: Date | null;
+  onSelect: (campaignId: string) => void;
 }) {
   const cells = monthGridDays(cursor);
 
@@ -61,7 +63,12 @@ export function MonthView({
                 )}
               </div>
               {evs.slice(0, MAX_CHIPS).map((ev) => (
-                <EventChip key={ev.id} event={ev} brand={brandMap[ev.brandId]} />
+                <EventChip
+                  key={ev.id}
+                  event={ev}
+                  brand={brandMap[ev.brandId]}
+                  onSelect={onSelect}
+                />
               ))}
               {evs.length > MAX_CHIPS && (
                 <div className="mt-1 pl-[3px] text-[10.5px] text-faint">

@@ -10,10 +10,12 @@ export function DayView({
   cursor,
   eventsByDay,
   brandMap,
+  onSelect,
 }: {
   cursor: Date;
   eventsByDay: Record<string, CalendarEvent[]>;
   brandMap: Record<string, Brand>;
+  onSelect: (campaignId: string) => void;
 }) {
   const evs = (eventsByDay[key(cursor)] ?? [])
     .slice()
@@ -34,9 +36,11 @@ export function DayView({
         const b = brandMap[ev.brandId];
         const isLaunch = ev.type === "launch";
         return (
-          <div
+          <button
+            type="button"
             key={ev.id}
-            className="flex items-center gap-3 border-b px-1.5 py-[13px]"
+            onClick={() => onSelect(ev.campaignId)}
+            className="flex items-center gap-3 border-b px-1.5 py-[13px] text-left transition-colors hover:bg-out"
             style={{ borderColor: "var(--color-cell)" }}
           >
             <span
@@ -56,7 +60,7 @@ export function DayView({
                 {isLaunch ? "Launch" : "Comp review due"}
               </span>
             </span>
-          </div>
+          </button>
         );
       })}
     </div>
