@@ -53,7 +53,7 @@ export function MonthView({
             >
               <div
                 className="mb-1 flex items-center gap-1.5 text-[12.5px] font-semibold"
-                style={{ color: isToday ? "var(--color-navy)" : "var(--color-muted)" }}
+                style={{ color: isToday ? "var(--color-navy)" : "var(--color-ink-muted)" }}
               >
                 {d.getDate()}
                 {isToday && (

@@ -79,7 +79,7 @@ export function Toolbar({
               className="rounded-[7px] px-[15px] py-1.5 text-[13px] font-medium transition-colors"
               style={{
                 background: on ? "var(--color-surface)" : "transparent",
-                color: on ? "var(--color-ink)" : "var(--color-muted)",
+                color: on ? "var(--color-ink)" : "var(--color-ink-muted)",
                 boxShadow: on ? "0 1px 2px rgba(0,0,0,.06)" : undefined,
               }}
             >
