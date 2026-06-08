@@ -45,3 +45,22 @@ export const prettyDate = (s: string): string => {
   const d = parseISO(s);
   return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
 };
+
+/** Sunday-start of the week containing d. */
+export const startOfWeek = (d: Date): Date => addDays(d, -d.getDay());
+
+/**
+ * 42 days (6 weeks, Sunday-start) covering the month of `cursor` — the cells
+ * for a month grid. Days outside the cursor's month are included for padding.
+ */
+export const monthGridDays = (cursor: Date): Date[] => {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+  const start = startOfWeek(first);
+  return Array.from({ length: 42 }, (_, i) => addDays(start, i));
+};
+
+/** The 7 days (Sunday-start) of the week containing `cursor`. */
+export const weekDays = (cursor: Date): Date[] => {
+  const start = startOfWeek(cursor);
+  return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+};

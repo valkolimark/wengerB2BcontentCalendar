@@ -40,6 +40,18 @@ export type CampaignEvent = {
   label: string;
 };
 
+// A calendar event flattened from the events→campaigns→brands join, shaped for
+// rendering in the calendar views.
+export type CalendarEvent = {
+  id: string;
+  date: string; // ISO yyyy-mm-dd
+  type: EventType;
+  label: string;
+  brandId: string;
+  campaignId: string;
+  campaignName: string;
+};
+
 export type Campaign = {
   id: string;
   // Nullable on purpose: campaigns.initiative_id is ON DELETE SET NULL, so a

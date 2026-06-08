@@ -14,10 +14,22 @@ which is the UX source of truth.
 
 ## Project status
 
-This is **Cycle 1 — Foundation**: the stack, data model, seed, and a bare
-proof-of-wiring home page that round-trips data from Supabase. There is no app
-UI yet — the calendar, cards, drawers, and CRUD start in Cycle 2. See
-[`cycles/`](cycles/) for the per-cycle plans.
+Through **Cycle 2 — Calendar home**: `/` is the real calendar-first home screen
+— app bar, a Day/Week/Month toolbar, a brand-filter legend, and a color-coded
+calendar driven by live Supabase data. Clickable events / detail drawer,
+initiative cards, and CRUD come in later cycles. See [`cycles/`](cycles/) for
+the per-cycle plans.
+
+### The calendar home
+
+`/` opens on the **Month** view, defaulting to **June 2026** (where the seed
+data lives) so it shows populated on first load:
+
+- **Day / Week / Month** segmented control switches views; prev/next navigates
+  by day/week/month; **Today** jumps to the real current month.
+- Events are color-coded by brand. **Launches** render filled; **comp-due**
+  markers render dashed.
+- Click a brand in the legend to hide/show that brand's events live.
 
 ## Setup
 
@@ -59,18 +71,21 @@ psql "$DATABASE_URL" -f supabase/seed.sql
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000). The home page should show
-**7 brands, 7 initiatives, 8 campaigns** pulled live from Supabase, plus a
-table of initiatives with their campaign counts and brand dots.
+Visit [http://localhost:3000](http://localhost:3000). The calendar home opens on
+the Month view for June 2026, with the seeded events placed on their dates and
+color-coded by brand, pulled live from Supabase.
 
 ## Project layout
 
 ```
 reference/ContentTracker.jsx   Prototype — UX + data source of truth
+src/app/page.tsx               Home (server) — fetches data, renders CalendarHome
+src/components/calendar/       Calendar UI (CalendarHome, Toolbar, views, chips)
 src/lib/types.ts               Domain types
 src/lib/brands.ts              Brand tokens + status colors
 src/lib/utm.ts                 UTM derivation + assembly
-src/lib/dates.ts               Date key/parse/format helpers
+src/lib/dates.ts               Date key/parse/format + grid math
+src/lib/queries.ts             Server data access (getCalendarData)
 src/lib/supabase/              Server + browser Supabase clients
 supabase/migrations/           SQL schema
 supabase/seed.sql              Sample data (generated)

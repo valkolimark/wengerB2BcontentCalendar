@@ -3,6 +3,41 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## 0.2.0 — Cycle 2: Calendar home
+
+The calendar-first home screen, driven by live Supabase data.
+
+### Added
+
+- **Data access:** `src/lib/queries.ts` — `getCalendarData()` returns
+  `{ brands, events }`, with each event flattened from the events → campaigns →
+  brands join (`{ id, date, type, label, brandId, campaignId, campaignName }`).
+- **Home:** `app/page.tsx` (server) fetches calendar data and renders the client
+  `<CalendarHome>`; all interactivity is client-side.
+- **Calendar components** under `src/components/calendar/`:
+  - `CalendarHome` — owns `view` (month/week/day, default month), `cursor`, and
+    `hiddenBrands`; builds the by-day event map; renders app bar, toolbar,
+    legend, and the active view.
+  - `Toolbar` — period title, prev/next, Today, Day/Week/Month segmented control.
+  - `BrandLegend` — per-brand toggle chips + launch/comp-due key.
+  - `MonthView` — 6-week Sunday-start grid, dimmed out-of-month days, today
+    outline, up to 3 chips per cell + "+N more".
+  - `WeekView` — 7 columns for the cursor's week.
+  - `DayView` — agenda list with a friendly empty state.
+  - `EventChip` — brand-tinted; launch filled, comp-due dashed (display-only).
+- **Calendar logic:** grid math + day keys added to `src/lib/dates.ts`
+  (`startOfWeek`, `monthGridDays`, `weekDays`). `cursor` defaults to June 2026;
+  Today jumps to the real current month; the today-outline uses the real date.
+- **Theme tokens:** prototype neutral palette (canvas, navy, hairlines) added to
+  `@theme` in `globals.css`. Brand colors remain inline (data, not classes).
+- `CalendarEvent` type added to `src/lib/types.ts`.
+
+### Changed
+
+- `/` now renders the calendar home, replacing the Cycle 1 proof-of-wiring page.
+- `CLAUDE.md` stack line corrected to "Next.js 16 (App Router) + Tailwind v4".
+- README documents the calendar home and how to view it.
+
 ## 0.1.0 — Cycle 1: Foundation
 
 The stack, data model, seed, and a proof-of-wiring home page.
