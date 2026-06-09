@@ -9,7 +9,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import type { Brand, CampaignWithEvents, Initiative } from "@/lib/types";
+import type {
+  Brand,
+  CampaignWithEvents,
+  Initiative,
+  SfParent,
+} from "@/lib/types";
 import {
   CHANNELS,
   assembleUtm,
@@ -17,10 +22,13 @@ import {
   hasSalesforce,
   resolveSource,
 } from "@/lib/utm";
+import { sfParentChain } from "@/lib/sf";
 import { addDays, key, parseISO } from "@/lib/dates";
 import { createCampaign, updateCampaign } from "@/lib/actions";
 import { Field, inputClass } from "./Field";
 import { InitiativePicker } from "./InitiativePicker";
+import { SfParentModal } from "./SfParentModal";
+import { Plus } from "lucide-react";
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -29,12 +37,14 @@ export function CampaignModal({
   presetInitiative,
   initiatives,
   brands,
+  sfParents,
   onClose,
 }: {
   campaign: CampaignWithEvents | null;
   presetInitiative?: string;
   initiatives: Initiative[];
   brands: Brand[];
+  sfParents: SfParent[];
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -52,6 +62,8 @@ export function CampaignModal({
   const [sf, setSf] = useState(campaign?.sf_code ?? "");
   const [sfId, setSfId] = useState(campaign?.sf_id ?? "");
   const [sfName, setSfName] = useState(campaign?.sf_name ?? "");
+  const [sfParentId, setSfParentId] = useState(campaign?.sf_parent_id ?? "");
+  const [parentModalOpen, setParentModalOpen] = useState(false);
   const [content, setContent] = useState(campaign?.utm_content ?? "");
   const [launch, setLaunch] = useState("");
   const [autoComp, setAutoComp] = useState(true);
@@ -97,6 +109,7 @@ export function CampaignModal({
       sf_code: sf,
       sf_id: sfId,
       sf_name: sfName,
+      sf_parent_id: sfParentId || null,
       utm_content: content,
     };
     start(async () => {
@@ -231,6 +244,43 @@ export function CampaignModal({
             />
           </Field>
         </div>
+        <Field
+          label={
+            <span className="flex items-center justify-between">
+              SF Parent (rolls up into)
+              <button
+                type="button"
+                onClick={() => setParentModalOpen(true)}
+                className="inline-flex items-center gap-1 rounded-md border border-line bg-surface px-2 py-px text-[11px] text-ink-muted transition-colors hover:bg-[var(--color-hover)]"
+              >
+                <Plus size={11} /> New parent
+              </button>
+            </span>
+          }
+        >
+          <select
+            className={`${inputClass} cursor-pointer`}
+            value={sfParentId}
+            onChange={(e) => setSfParentId(e.target.value)}
+          >
+            <option value="">None</option>
+            {sfParents.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        {sfParentId &&
+          (() => {
+            const chain = sfParentChain(sfParentId, sfParents);
+            return chain.length > 0 ? (
+              <div className="mb-3.5 -mt-1.5 text-[11.5px] text-faint">
+                Reporting chain: {chain.map((c) => c.name).join(" → ")}
+              </div>
+            ) : null;
+          })()}
+
         <Field label="utm_content">
           <input
             className={`${inputClass} font-mono`}
@@ -313,6 +363,14 @@ export function CampaignModal({
           </button>
         </DialogFooter>
       </DialogContent>
+
+      {parentModalOpen && (
+        <SfParentModal
+          sfParents={sfParents}
+          onClose={() => setParentModalOpen(false)}
+          onCreated={(id) => setSfParentId(id)}
+        />
+      )}
     </Dialog>
   );
 }

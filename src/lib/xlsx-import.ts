@@ -99,6 +99,7 @@ export async function parseWorkbook(file: File): Promise<ParseResult> {
       sf_code: sf,
       sf_id: str(r["SF ID"]),
       sf_name: str(r["SF Name"]),
+      sf_parent: str(r["SF Parent"]),
       utm_source: str(r.utm_source),
       utm_medium: str(r.utm_medium),
       utm_content: str(r.utm_content),

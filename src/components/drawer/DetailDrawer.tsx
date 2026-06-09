@@ -17,17 +17,20 @@ import {
   Pencil,
   Trash2,
   Hash,
+  GitBranch,
 } from "lucide-react";
 import type {
   Brand,
   CampaignWithEvents,
   Initiative,
   Selected,
+  SfParent,
 } from "@/lib/types";
 import { STATUS } from "@/lib/brands";
 import { rollup } from "@/lib/rollups";
 import { fmtMoney } from "@/lib/format";
 import { assembleUtm } from "@/lib/utm";
+import { sfParentChain } from "@/lib/sf";
 
 type OpenSelection = NonNullable<Selected>;
 
@@ -39,6 +42,7 @@ export function DetailDrawer({
   today,
   canSeeFinancials,
   canWrite,
+  sfParents,
   onSelect,
   onClose,
   onEdit,
@@ -51,6 +55,7 @@ export function DetailDrawer({
   today: Date;
   canSeeFinancials: boolean;
   canWrite: boolean;
+  sfParents: SfParent[];
   onSelect: (sel: OpenSelection) => void;
   onClose: () => void;
   onEdit: () => void;
@@ -108,6 +113,7 @@ export function DetailDrawer({
                 : null
             }
             canSeeFinancials={canSeeFinancials}
+            sfParents={sfParents}
             copied={copied}
             onCopy={doCopy}
             onSelect={onSelect}
@@ -177,6 +183,7 @@ function CampaignBody({
   parent,
   canSeeFinancials,
   canWrite,
+  sfParents,
   copied,
   onCopy,
   onSelect,
@@ -189,6 +196,7 @@ function CampaignBody({
   parent: Initiative | null;
   canSeeFinancials: boolean;
   canWrite: boolean;
+  sfParents: SfParent[];
   copied: boolean;
   onCopy: (t: string) => void;
   onSelect: (sel: OpenSelection) => void;
@@ -265,6 +273,17 @@ function CampaignBody({
           {campaign.sf_name && (
             <Fact ic={<Building2 size={14} />} k="SF name" v={campaign.sf_name} />
           )}
+          {campaign.sf_parent_id &&
+            (() => {
+              const chain = sfParentChain(campaign.sf_parent_id, sfParents);
+              return chain.length > 0 ? (
+                <Fact
+                  ic={<GitBranch size={14} />}
+                  k="SF parent"
+                  v={chain.map((c) => c.name).join(" → ")}
+                />
+              ) : null;
+            })()}
           {canSeeFinancials && (
             <>
               <Fact ic={<Users size={14} />} k="Leads" v={String(campaign.leads || 0)} />

@@ -13,6 +13,7 @@ import type {
   Initiative,
   Role,
   Selected,
+  SfParent,
 } from "@/lib/types";
 import { parseISO } from "@/lib/dates";
 import { deleteCampaign, deleteInitiative, signOut } from "@/lib/actions";
@@ -55,6 +56,7 @@ export function CalendarHome({
   brands,
   initiatives,
   campaigns,
+  sfParents,
   todayKey,
   role,
   canSeeFinancials,
@@ -63,6 +65,7 @@ export function CalendarHome({
   brands: Brand[];
   initiatives: Initiative[];
   campaigns: CampaignWithEvents[];
+  sfParents: SfParent[];
   todayKey: string;
   role: Role;
   canSeeFinancials: boolean;
@@ -253,6 +256,7 @@ export function CalendarHome({
             brands={brands}
             initiatives={initiatives}
             campaigns={campaigns}
+            sfParents={sfParents}
             canSeeFinancials={canSeeFinancials}
             isAdmin={role === "admin"}
             onImport={() => setImporting(true)}
@@ -403,6 +407,7 @@ export function CalendarHome({
           campaigns={campaigns}
           today={today}
           canSeeFinancials={canSeeFinancials}
+          sfParents={sfParents}
           onSelect={setSelected}
           onClose={() => setSelected(null)}
           canWrite={canWrite}
@@ -433,6 +438,7 @@ export function CalendarHome({
           presetInitiative={modal.presetInitiative}
           initiatives={initiatives}
           brands={brands}
+          sfParents={sfParents}
           onClose={() => setModal(null)}
         />
       )}

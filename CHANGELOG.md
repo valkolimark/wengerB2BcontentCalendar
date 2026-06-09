@@ -3,6 +3,35 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.3.0] — Cycle 10 — 2026-06-08 — Salesforce reporting parents
+
+Campaigns can reference a Salesforce rollup parent; the app stays two-level and
+Salesforce does the rollup. (Spec'd as "Cycle 8 / 1.1.0" against the v1.0.0
+state; renumbered — SF Campaign ID/Name already landed in Cycle 9, so this
+cycle adds only the parent reference + lookup + chain/CSV.)
+
+### Added
+
+- `sf_parents` lookup (self-referential chain) + RLS (`0006_sf_parents.sql`):
+  readable by any authenticated user, writable by staff; seeded `CONV ALL
+  Campaigns 2026` → `Conv Music Ed 2026` / `Conv Performing Arts 2026`, and
+  `Prop 28 2026`.
+- `campaigns.sf_parent_id` (FK → `sf_parents`, ON DELETE SET NULL).
+- `src/lib/sf.ts` — `sfParentChain` (leaf→root) and `wouldCycle` guard.
+- Server actions `createSfParent` / `updateSfParent` (cycle-guarded) /
+  `deleteSfParent`; `createCampaign` / `updateCampaign` persist `sf_parent_id`.
+- Campaign modal: **SF Parent** select (+ **New parent** via `SfParentModal`)
+  with a `leaf → root` chain preview.
+- Drawer: SF parent chain in the campaign facts.
+- **Salesforce import CSV** export (Data menu) — campaigns + the deduped parent
+  chain (`Name`, `Parent Campaign` by name, `Type`, `Status`).
+
+### Changed
+
+- XLSX Campaigns sheet carries **SF Parent** (name) in Full + JMC.
+- Importer reads the SF Parent column; resolves/creates the parent by name
+  (as a root). Still additive/idempotent.
+
 ## [1.2.0] — Cycle 9 — 2026-06-08 — Salesforce campaign fields + source rule
 
 Capture a campaign's real Salesforce identity and force `utm_source =

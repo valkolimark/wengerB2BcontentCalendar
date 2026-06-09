@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { tintOf, textOf } from "@/lib/brands";
 import { slug, deriveMedium, resolveSource } from "@/lib/utm";
+import { wouldCycle } from "@/lib/sf";
+import type { SfParent } from "@/lib/types";
 import { requireStaff, requireAdmin } from "@/lib/auth";
 import type {
   CampaignInput,
@@ -71,6 +73,62 @@ export async function deleteBrand(id: string) {
   }
 
   const { error } = await supabase.from("brands").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+}
+
+/* ----------------------------- sf parents -------------------------------- */
+
+export async function createSfParent(input: {
+  name: string;
+  parent_id: string | null;
+}): Promise<string> {
+  await requireStaff();
+  const name = input.name.trim();
+  if (!name) throw new Error("Parent name is required.");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("sf_parents")
+    .insert({ name, parent_id: input.parent_id || null })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+  return data.id as string;
+}
+
+export async function updateSfParent(
+  id: string,
+  input: { name: string; parent_id: string | null }
+) {
+  await requireStaff();
+  const name = input.name.trim();
+  if (!name) throw new Error("Parent name is required.");
+
+  const supabase = await createClient();
+  // Reject changes that would create a reporting cycle (a→b→a).
+  const { data: rows } = await supabase
+    .from("sf_parents")
+    .select("id, name, parent_id");
+  if (wouldCycle(id, input.parent_id, (rows ?? []) as SfParent[])) {
+    throw new Error("That would create a reporting cycle.");
+  }
+
+  const { error } = await supabase
+    .from("sf_parents")
+    .update({ name, parent_id: input.parent_id || null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+}
+
+// Deleting a parent nulls dependents' parent_id and campaigns' sf_parent_id via
+// the FKs (ON DELETE SET NULL) — no orphan loss.
+export async function deleteSfParent(id: string) {
+  await requireStaff();
+  const supabase = await createClient();
+  const { error } = await supabase.from("sf_parents").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/");
 }
@@ -167,11 +225,17 @@ function utmFields(input: CampaignInput) {
 }
 
 // Shared SF identity columns (stored as null when blank).
-function sfFields(input: { sf_code: string; sf_id: string; sf_name: string }) {
+function sfFields(input: {
+  sf_code: string;
+  sf_id: string;
+  sf_name: string;
+  sf_parent_id: string | null;
+}) {
   return {
     sf_code: input.sf_code.trim(),
     sf_id: input.sf_id.trim() || null,
     sf_name: input.sf_name.trim() || null,
+    sf_parent_id: input.sf_parent_id || null,
   };
 }
 
@@ -321,12 +385,14 @@ export async function importWorkbook(
   };
 
   // Current state for matching.
-  const [brandsRes, initiativesRes, campaignsRes, eventsRes] = await Promise.all([
-    supabase.from("brands").select("id, label"),
-    supabase.from("initiatives").select("id, name"),
-    supabase.from("campaigns").select("id, sf_code"),
-    supabase.from("events").select("campaign_id, type, date"),
-  ]);
+  const [brandsRes, initiativesRes, campaignsRes, eventsRes, sfParentsRes] =
+    await Promise.all([
+      supabase.from("brands").select("id, label"),
+      supabase.from("initiatives").select("id, name"),
+      supabase.from("campaigns").select("id, sf_code"),
+      supabase.from("events").select("campaign_id, type, date"),
+      supabase.from("sf_parents").select("id, name"),
+    ]);
 
   const brandById = new Set<string>();
   const brandByLabel = new Map<string, string>();
@@ -337,6 +403,29 @@ export async function importWorkbook(
   const initByName = new Map<string, string>();
   for (const i of initiativesRes.data ?? [])
     initByName.set(i.name.toLowerCase(), i.id);
+  const sfParentByName = new Map<string, string>();
+  for (const p of sfParentsRes.data ?? [])
+    sfParentByName.set(p.name.toLowerCase(), p.id);
+
+  // Resolve an SF parent by name, creating it as a root if absent (chain edits
+  // stay a manual/admin step).
+  const ensureSfParent = async (name: string): Promise<string | null> => {
+    const n = name.trim();
+    if (!n) return null;
+    const existing = sfParentByName.get(n.toLowerCase());
+    if (existing) return existing;
+    const { data, error } = await supabase
+      .from("sf_parents")
+      .insert({ name: n })
+      .select("id")
+      .single();
+    if (error || !data) {
+      report.errors.push(`SF parent "${n}": ${error?.message ?? "insert failed"}`);
+      return null;
+    }
+    sfParentByName.set(n.toLowerCase(), data.id);
+    return data.id;
+  };
   const campBySf = new Map<string, string>();
   for (const c of campaignsRes.data ?? [])
     if (c.sf_code) campBySf.set(c.sf_code, c.id);
@@ -429,6 +518,7 @@ export async function importWorkbook(
       continue;
     }
     const initiativeId = await ensureInitiative(c.initiative);
+    const sfParentId = c.sf_parent ? await ensureSfParent(c.sf_parent) : null;
 
     const fields = {
       initiative_id: initiativeId,
@@ -441,6 +531,7 @@ export async function importWorkbook(
       sf_code: sf,
       sf_id: c.sf_id?.trim() || null,
       sf_name: c.sf_name?.trim() || null,
+      sf_parent_id: sfParentId,
       utm_source: c.utm_source,
       utm_medium: c.utm_medium,
       utm_content: c.utm_content,

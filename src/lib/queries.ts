@@ -6,6 +6,7 @@ import type {
   EventLite,
   Initiative,
   Role,
+  SfParent,
 } from "@/lib/types";
 
 // Row shape from `campaigns.select('*, events(...)')` (no leads/pipeline — those
@@ -21,6 +22,7 @@ export type HomeData = {
   brands: Brand[];
   initiatives: Initiative[];
   campaigns: CampaignWithEvents[];
+  sfParents: SfParent[];
   canSeeFinancials: boolean;
   role: Role;
   userEmail: string | null;
@@ -37,18 +39,21 @@ export async function getHomeData(): Promise<HomeData> {
   const profile = await getCurrentProfile();
   const entitled = entitledToFinancials(profile);
 
-  const [brandsRes, initiativesRes, campaignsRes] = await Promise.all([
-    supabase.from("brands").select("*").order("label"),
-    supabase.from("initiatives").select("*").order("name"),
-    supabase
-      .from("campaigns")
-      .select("*, events(id, type, date, label)")
-      .order("name"),
-  ]);
+  const [brandsRes, initiativesRes, campaignsRes, sfParentsRes] =
+    await Promise.all([
+      supabase.from("brands").select("*").order("label"),
+      supabase.from("initiatives").select("*").order("name"),
+      supabase
+        .from("campaigns")
+        .select("*, events(id, type, date, label)")
+        .order("name"),
+      supabase.from("sf_parents").select("id, name, parent_id").order("name"),
+    ]);
 
   if (brandsRes.error) throw new Error(brandsRes.error.message);
   if (initiativesRes.error) throw new Error(initiativesRes.error.message);
   if (campaignsRes.error) throw new Error(campaignsRes.error.message);
+  if (sfParentsRes.error) throw new Error(sfParentsRes.error.message);
 
   // Financials: only queried when entitled. RLS is the real backstop.
   const financials = new Map<string, { leads: number; pipeline: number }>();
@@ -77,6 +82,7 @@ export async function getHomeData(): Promise<HomeData> {
     brands: (brandsRes.data ?? []) as Brand[],
     initiatives: (initiativesRes.data ?? []) as Initiative[],
     campaigns,
+    sfParents: (sfParentsRes.data ?? []) as SfParent[],
     canSeeFinancials: entitled,
     role: profile?.role ?? "external",
     userEmail: profile?.email ?? null,

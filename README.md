@@ -14,11 +14,12 @@ which is the UX source of truth.
 
 ## Project status
 
-**v1.2.0 — Cycle 9: Salesforce fields.** Campaigns now carry an **SF Campaign
-ID** and **SF Campaign Name** (alongside the SF code), and any Salesforce
-identity forces `utm_source = salesforce`. Built on **v1.1.0** (light/dark
-theming + branding) and **v1.0.0** (production-ready: full app + auth + RLS
-gating + XLSX + hardening).
+**v1.3.0 — Cycle 10: Salesforce reporting parents.** Campaigns can reference a
+Salesforce **rollup parent** (a small self-referential lookup); a **Salesforce
+import CSV** export walks the deduped parent chain so SF can reconstruct the
+tree. The app stays two-level (Initiative → Campaign) — Salesforce does the
+rollup. Built on **v1.2.0** (SF Campaign ID/Name + `utm_source=salesforce`
+rule), **v1.1.0** (theming), and **v1.0.0** (production-ready).
 See [Theming & branding](#theming--branding), [Deployment](#deployment-vercel),
 the [Go-live checklist](#go-live-checklist),
 [Authentication & roles](#authentication--roles), [Spreadsheet
@@ -44,6 +45,11 @@ round-trip](#spreadsheet-export--import), and [`cycles/`](cycles/).
   are metadata only — they never enter the UTM string. On create, a launch date
   + auto comp-due (launch − 10d, toggle to manual) seed the events. Editing
   changes metadata only — existing events are kept.
+  - **SF reporting parent:** a campaign can reference the Salesforce rollup
+    **parent** it reports into (a dropdown from the `sf_parents` lookup, with a
+    **+ New parent** affordance and a `leaf → root` chain preview). It's
+    optional and metadata only — the app stays two-level; Salesforce does the
+    rollup. Cycle prevention (a→b→a) is enforced when editing a parent.
 - **Orphans** (campaigns with no initiative) surface in a bar on the home
   screen and can be adopted into an initiative.
 - **Global search** filters the initiative cards and surfaces matching
@@ -176,13 +182,20 @@ Actions, so RLS applies — the browser never writes to Supabase directly.
 ### Export (anyone)
 
 Builds a workbook with **Initiatives**, **Campaigns**, and **Events** sheets;
-Campaigns includes the assembled UTM (computed at export, never stored).
-Filename: `wenger-content-tracker_YYYY-MM-DD.xlsx`. Two modes:
+Campaigns includes the SF Campaign ID/Name, **SF Parent** (name), and the
+assembled UTM (computed at export, never stored). Filename:
+`wenger-content-tracker_YYYY-MM-DD.xlsx`. Two modes:
 
 - **Full export** — includes `Leads` / `Pipeline` **only when you're entitled**
   to financials. A non-entitled user's export has no financial data at all
   (it isn't in their session to begin with).
 - **JMC view** — omits the financial columns entirely, for sharing externally.
+  (SF metadata is operational, not dollars, so it stays in the JMC view.)
+- **Salesforce import (CSV)** — a separate menu item that emits one row per
+  campaign with a parent, plus one row per **distinct parent in every chain**
+  (deduped), each pointing at its next level up (root = blank), matched **by
+  name**. Filename `wenger-sf-import_YYYY-MM-DD.csv`. Outbound only — not
+  re-imported.
 
 ### Import (admin only)
 

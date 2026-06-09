@@ -6,8 +6,15 @@ import { CalendarHome } from "@/components/calendar/CalendarHome";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { brands, initiatives, campaigns, canSeeFinancials, role, userEmail } =
-    await getHomeData();
+  const {
+    brands,
+    initiatives,
+    campaigns,
+    sfParents,
+    canSeeFinancials,
+    role,
+    userEmail,
+  } = await getHomeData();
 
   // Server-computed "today" so SSR and client hydration agree on the date.
   const todayKey = key(new Date());
@@ -17,6 +24,7 @@ export default async function Home() {
       brands={brands}
       initiatives={initiatives}
       campaigns={campaigns}
+      sfParents={sfParents}
       todayKey={todayKey}
       role={role}
       canSeeFinancials={canSeeFinancials}

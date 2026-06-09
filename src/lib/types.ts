@@ -14,6 +14,15 @@ export type Profile = {
   can_see_financials: boolean;
 };
 
+// A Salesforce reporting parent (rollup reference). Self-referential: parent_id
+// is the rollup this one reports into (null = root). Salesforce does the rollup;
+// the app only records the reference.
+export type SfParent = {
+  id: string;
+  name: string;
+  parent_id: string | null;
+};
+
 // Drawer selection — shared across the calendar, cards, and drawer.
 export type Selected = { kind: "initiative" | "campaign"; id: string } | null;
 
@@ -34,6 +43,7 @@ export type ImportPayload = {
     sf_code: string;
     sf_id: string;
     sf_name: string;
+    sf_parent: string; // SF Parent name (resolved/created on import)
     utm_source: string;
     utm_medium: string;
     utm_content: string;
@@ -130,6 +140,8 @@ export type Campaign = {
   // of sf_code/sf_id/sf_name is present, utm_source is forced to "salesforce".
   sf_id: string | null;
   sf_name: string | null;
+  // SF reporting parent this campaign rolls up into (null = none).
+  sf_parent_id: string | null;
   utm_source: string;
   utm_medium: string;
   utm_content: string;
@@ -153,5 +165,6 @@ export type CampaignInput = {
   sf_code: string;
   sf_id: string;
   sf_name: string;
+  sf_parent_id: string | null;
   utm_content: string;
 };

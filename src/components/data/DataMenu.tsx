@@ -1,19 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Upload, ChevronDown, FileSpreadsheet } from "lucide-react";
-import type { Brand, CampaignWithEvents, Initiative } from "@/lib/types";
-import { exportWorkbook } from "@/lib/xlsx-export";
+import {
+  Download,
+  Upload,
+  ChevronDown,
+  FileSpreadsheet,
+  GitBranch,
+} from "lucide-react";
+import type {
+  Brand,
+  CampaignWithEvents,
+  Initiative,
+  SfParent,
+} from "@/lib/types";
+import { exportWorkbook, exportSfImportCsv } from "@/lib/xlsx-export";
 
 /**
- * App-bar data menu: export the workbook (Full vs JMC view) and — for admins —
- * open the import flow. Export is fully client-side; a non-entitled user only
- * ever gets the scrubbed shape because the financial data isn't present.
+ * App-bar data menu: export the workbook (Full vs JMC view), export the
+ * Salesforce import CSV, and — for admins — open the import flow. Export is
+ * fully client-side; a non-entitled user only ever gets the scrubbed shape
+ * because the financial data isn't present.
  */
 export function DataMenu({
   brands,
   initiatives,
   campaigns,
+  sfParents,
   canSeeFinancials,
   isAdmin,
   onImport,
@@ -21,6 +34,7 @@ export function DataMenu({
   brands: Brand[];
   initiatives: Initiative[];
   campaigns: CampaignWithEvents[];
+  sfParents: SfParent[];
   canSeeFinancials: boolean;
   isAdmin: boolean;
   onImport: () => void;
@@ -28,7 +42,18 @@ export function DataMenu({
   const [open, setOpen] = useState(false);
 
   const doExport = (includeFinancials: boolean) => {
-    exportWorkbook({ brands, initiatives, campaigns, includeFinancials });
+    exportWorkbook({
+      brands,
+      initiatives,
+      campaigns,
+      sfParents,
+      includeFinancials,
+    });
+    setOpen(false);
+  };
+
+  const doSfCsv = () => {
+    exportSfImportCsv(campaigns, sfParents);
     setOpen(false);
   };
 
@@ -79,6 +104,21 @@ export function DataMenu({
                 JMC view
                 <span className="block text-[11px] text-faint">
                   financials omitted entirely
+                </span>
+              </span>
+            </button>
+
+            <div className="my-1 border-t border-hair" />
+            <button
+              type="button"
+              onClick={doSfCsv}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
+            >
+              <GitBranch size={14} className="text-ink-muted" />
+              <span>
+                Salesforce import (CSV)
+                <span className="block text-[11px] text-faint">
+                  campaigns + deduped parent chain
                 </span>
               </span>
             </button>
