@@ -240,7 +240,12 @@ export function CampaignModal({
               className={inputClass}
               value={sfName}
               onChange={(e) => setSfName(e.target.value)}
-              placeholder="FY26 Prop 28 — Email"
+              placeholder="FY26 Prop 28 — Spring"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              data-1p-ignore
+              data-lpignore="true"
             />
           </Field>
         </div>
