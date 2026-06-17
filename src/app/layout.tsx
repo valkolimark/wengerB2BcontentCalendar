@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { VividBackdrop } from "@/components/theme/VividBackdrop";
 
 const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-sans",
@@ -21,9 +22,10 @@ export const metadata: Metadata = {
   icons: { icon: "/brand/mark.png", apple: "/brand/mark.png" },
 };
 
-// Runs before paint: sets the theme class on <html> from localStorage (or the
-// OS preference) so there's no flash of the wrong theme on first load.
-const noFlashTheme = `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+// Runs before paint: sets the theme on <html> from localStorage (or the OS
+// preference) so there's no flash of the wrong theme on first load. Vivid is
+// opt-in only (never auto-selected): `.dark` class for dark, data-theme for vivid.
+const noFlashTheme = `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var e=document.documentElement;if(t==='dark'){e.classList.add('dark');}else if(t==='vivid'){e.setAttribute('data-theme','vivid');}}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -38,6 +40,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <script dangerouslySetInnerHTML={{ __html: noFlashTheme }} />
+        <VividBackdrop />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

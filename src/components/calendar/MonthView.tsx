@@ -43,7 +43,9 @@ export function MonthView({
           return (
             <div
               key={i}
-              className="min-h-[92px] overflow-hidden rounded-[9px] border p-1.5"
+              className={`min-h-[92px] overflow-hidden rounded-[9px] border p-1.5${
+                isToday ? " v-today" : ""
+              }`}
               style={{
                 borderColor: isToday ? "var(--color-navy)" : "var(--color-cell)",
                 background: out ? "var(--color-out)" : "var(--color-surface)",
@@ -62,12 +64,13 @@ export function MonthView({
                   </span>
                 )}
               </div>
-              {evs.slice(0, MAX_CHIPS).map((ev) => (
+              {evs.slice(0, MAX_CHIPS).map((ev, ci) => (
                 <EventChip
                   key={ev.id}
                   event={ev}
                   brand={brandMap[ev.brandId]}
                   onSelect={onSelect}
+                  index={ci}
                 />
               ))}
               {evs.length > MAX_CHIPS && (

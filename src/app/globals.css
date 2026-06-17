@@ -193,3 +193,355 @@
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
+
+/* ========================================================================== */
+/* VIVID THEME — Cycle 11 (v1.4.0)                                            */
+/* An opt-in third theme. Everything below is scoped to [data-theme="vivid"]  */
+/* (or to .v-* helper classes that only animate inside that scope), so light  */
+/* and dark are provably untouched. Brand identity stays data: components     */
+/* expose --b-dot / --b-grad inline; this stylesheet consumes them.           */
+/* ========================================================================== */
+
+/* Motion tokens (global definitions; only referenced by vivid rules). */
+:root {
+  --ease: cubic-bezier(0.32, 0.72, 0, 1); /* travel + settle */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* snap + pop */
+}
+
+/* Vivid palette — a brighter, cooler skin over the warm-neutral light base.
+   Surfaces stay near-opaque for legibility; the ambient blobs glow through the
+   translucent canvas behind the content. Brand-neutral chrome is preserved. */
+[data-theme="vivid"] {
+  background: #eef1f7; /* base behind the fixed blob layer */
+  --canvas: rgba(247, 248, 252, 0.66);
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-2: rgba(244, 246, 251, 0.85);
+  --hover: rgba(236, 239, 247, 0.9);
+  --selected: #e7eefb;
+  --ink: #161a22;
+  --ink-soft: #3d424d;
+  --ink-muted: #565c68;
+  --muted2: #646a76;
+  --faint: #6f7480;
+  --navy: #1c3b66;
+  --navy-dark: #163052;
+  --hair: rgba(20, 28, 48, 0.08);
+  --cell: rgba(20, 28, 48, 0.1);
+  --line: rgba(20, 28, 48, 0.12);
+  --seg: rgba(20, 28, 48, 0.07);
+  --out: rgba(244, 246, 251, 0.5);
+}
+[data-theme="vivid"] body {
+  background: transparent;
+}
+
+/* Frosted chrome — app bar + main surfaces get a backdrop blur in vivid. */
+[data-theme="vivid"] header.sticky {
+  backdrop-filter: saturate(1.3) blur(14px);
+  -webkit-backdrop-filter: saturate(1.3) blur(14px);
+}
+
+/* ----------------------------- ambient blobs ----------------------------- */
+.v-backdrop {
+  display: none;
+}
+[data-theme="vivid"] .v-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+.v-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+[data-theme="vivid"] .v-blob {
+  animation: v-drift var(--dur, 30s) var(--ease) infinite alternate;
+  animation-delay: var(--delay, 0s);
+}
+
+/* ------------------------------ event chips ------------------------------ */
+/* Launch = full brand gradient, white text, brand glow.
+   Comp-due = faint brand wash, dashed brand border, brand text. */
+[data-theme="vivid"] .v-chip[data-launch="true"] {
+  background: var(--b-grad) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--b-dot) 38%, transparent);
+}
+[data-theme="vivid"] .v-chip[data-launch="false"] {
+  background: color-mix(in srgb, var(--b-dot) 10%, transparent) !important;
+  border: 1px dashed color-mix(in srgb, var(--b-dot) 70%, transparent) !important;
+  color: var(--b-dot) !important;
+}
+[data-theme="vivid"] .v-chip:hover {
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--b-dot) 45%, transparent);
+}
+
+/* ------------------------------ brand legend ----------------------------- */
+[data-theme="vivid"] .v-legend-chip {
+  background: color-mix(in srgb, var(--b-dot) 11%, transparent) !important;
+  border-color: color-mix(in srgb, var(--b-dot) 28%, transparent) !important;
+}
+[data-theme="vivid"] .v-legend-chip[data-off="true"] {
+  filter: grayscale(1);
+}
+[data-theme="vivid"] .v-legend-chip .v-dot {
+  transition: transform 0.14s var(--ease-spring);
+}
+[data-theme="vivid"] .v-legend-chip:hover .v-dot {
+  transform: scale(1.35);
+}
+
+/* ---------------------------- initiative cards --------------------------- */
+[data-theme="vivid"] .v-bar {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--b-dot) 82%, #fff) 0%,
+    color-mix(in srgb, var(--b-dot) 78%, #000) 100%
+  ) !important;
+}
+[data-theme="vivid"] .v-card {
+  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+[data-theme="vivid"] .v-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--b-dot) 26%, transparent);
+  border-color: color-mix(in srgb, var(--b-dot) 40%, transparent);
+}
+/* Status pill — gradient by state. */
+[data-theme="vivid"] .v-status {
+  color: #fff !important;
+}
+[data-theme="vivid"] .v-status[data-state="active"] {
+  background: linear-gradient(135deg, #34a853, #1e7e3e) !important;
+}
+[data-theme="vivid"] .v-status[data-state="soon"] {
+  background: linear-gradient(135deg, #f5a623, #e0721f) !important;
+}
+[data-theme="vivid"] .v-status[data-state="planning"] {
+  background: linear-gradient(135deg, #7a8696, #56606e) !important;
+}
+/* Accent-bar shimmer sweep on hover. */
+[data-theme="vivid"] .v-card .v-accent {
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="vivid"] .v-card .v-accent::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  transform: translateY(-100%);
+}
+[data-theme="vivid"] .v-card:hover .v-accent::after {
+  animation: v-shimmer 0.9s var(--ease);
+}
+
+/* -------------------------------- drawer --------------------------------- */
+[data-theme="vivid"] .v-drawer-head {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--b-dot) 22%, transparent),
+    color-mix(in srgb, var(--b-dot) 8%, transparent)
+  ) !important;
+}
+
+/* ------------------------------ seg control ------------------------------ */
+[data-theme="vivid"] .v-seg-btn {
+  transition: background 0.25s var(--ease-spring), color 0.2s var(--ease),
+    box-shadow 0.25s var(--ease);
+}
+[data-theme="vivid"] .v-seg-btn:active {
+  transform: scale(0.94);
+}
+
+/* ===================== one-shot + interaction animations ================= */
+/* These run ONLY under vivid; the keyframes set their own start state via
+   `both`, so outside vivid the element renders normally (no animation). */
+[data-theme="vivid"] .v-dropin {
+  animation: v-dropin 0.5s var(--ease) both;
+}
+[data-theme="vivid"] .v-fadeup {
+  animation: v-fadeup 0.5s var(--ease) both;
+}
+[data-theme="vivid"] .v-pop {
+  animation: v-pop 0.4s var(--ease-spring) both;
+}
+[data-theme="vivid"] .v-mount {
+  animation: v-fadeup 0.5s var(--ease) both;
+}
+[data-theme="vivid"] .v-view {
+  animation: v-view 0.34s var(--ease) both;
+}
+[data-theme="vivid"] .v-slideL {
+  animation: v-slide-left 0.34s var(--ease) both;
+}
+[data-theme="vivid"] .v-slideR {
+  animation: v-slide-right 0.34s var(--ease) both;
+}
+[data-theme="vivid"] .v-title {
+  animation: v-title 0.3s var(--ease) both;
+}
+[data-theme="vivid"] .v-drawer {
+  animation: v-drawer 0.36s var(--ease) both;
+}
+[data-theme="vivid"] .v-row {
+  animation: v-row 0.34s var(--ease) both;
+}
+[data-theme="vivid"] .v-fill {
+  animation: v-fill 1.1s var(--ease) both;
+}
+/* Pulse the cell's OWN box-shadow (an element's box-shadow isn't clipped by its
+   own overflow:hidden, unlike a pseudo-element child would be). */
+[data-theme="vivid"] .v-today {
+  animation: v-pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes v-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(var(--dx, 40px), var(--dy, -30px), 0) scale(1.15);
+  }
+}
+@keyframes v-dropin {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes v-fadeup {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes v-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes v-view {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes v-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes v-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes v-title {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes v-drawer {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes v-row {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes v-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: var(--target-w, 100%);
+  }
+}
+@keyframes v-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px var(--navy), 0 0 0 4px transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--navy),
+      0 0 0 7px color-mix(in srgb, var(--navy) 22%, transparent);
+  }
+}
+@keyframes v-shimmer {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* ----------------------- accessibility: reduce motion -------------------- */
+/* Collapse all motion (incl. blob drift + the today pulse) to ~0 while keeping
+   end states (fill-mode: both). Color treatment is untouched. Non-negotiable. */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="vivid"] *,
+  [data-theme="vivid"] *::before,
+  [data-theme="vivid"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

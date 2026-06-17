@@ -76,6 +76,9 @@ export function CalendarHome({
   const router = useRouter();
   const [view, setView] = useState<CalendarView>("month");
   const [cursor, setCursor] = useState<Date>(DEFAULT_CURSOR);
+  // Direction of the last period nav (-1 prev, +1 next, 0 view-switch/today) —
+  // drives the Vivid direction-aware slide; inert in light/dark.
+  const [navDir, setNavDir] = useState(0);
   const [hiddenBrands, setHiddenBrands] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Selected>(null);
   const [modal, setModal] = useState<ModalState>(null);
@@ -157,6 +160,7 @@ export function CalendarHome({
   const matchedCampaigns = ql ? campaigns.filter(campMatch) : [];
 
   const move = (dir: number) => {
+    setNavDir(dir);
     setCursor((c) => {
       const d = new Date(c);
       if (view === "month") d.setMonth(d.getMonth() + dir);
@@ -167,8 +171,14 @@ export function CalendarHome({
   };
 
   const goToday = () => {
+    setNavDir(0);
     const now = new Date();
     setCursor(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+  };
+
+  const changeView = (v: CalendarView) => {
+    setNavDir(0);
+    setView(v);
   };
 
   const toggleBrand = (id: string) =>
@@ -226,7 +236,7 @@ export function CalendarHome({
 
   return (
     <div className="min-h-screen bg-canvas font-sans text-ink">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-hair bg-surface px-[22px] py-[13px]">
+      <header className="v-dropin sticky top-0 z-10 flex items-center justify-between border-b border-hair bg-surface px-[22px] py-[13px]">
         <div className="flex items-center gap-3">
           {/* Theme-swapped Wenger logo (light artwork on dark, dark on light). */}
           <Image
@@ -293,50 +303,64 @@ export function CalendarHome({
       </header>
 
       <main className="mx-auto max-w-[1080px] p-[22px]">
-        <Toolbar
-          view={view}
-          cursor={cursor}
-          onView={setView}
-          onPrev={() => move(-1)}
-          onNext={() => move(1)}
-          onToday={goToday}
-        />
+        <div className="v-fadeup">
+          <Toolbar
+            view={view}
+            cursor={cursor}
+            onView={changeView}
+            onPrev={() => move(-1)}
+            onNext={() => move(1)}
+            onToday={goToday}
+          />
+        </div>
 
-        <BrandLegend
-          brands={brands}
-          hiddenBrands={hiddenBrands}
-          onToggle={toggleBrand}
-          canWrite={canWrite}
-          onAddBrand={() => setModal({ type: "brand" })}
-        />
+        <div className="v-fadeup" style={{ animationDelay: "60ms" }}>
+          <BrandLegend
+            brands={brands}
+            hiddenBrands={hiddenBrands}
+            onToggle={toggleBrand}
+            canWrite={canWrite}
+            onAddBrand={() => setModal({ type: "brand" })}
+          />
+        </div>
 
-        <section className="mb-[26px] rounded-[14px] border border-hair bg-surface p-4">
-          {view === "month" && (
-            <MonthView
-              cursor={cursor}
-              eventsByDay={eventsByDay}
-              brandMap={brandMap}
-              today={today}
-              onSelect={selectCampaign}
-            />
-          )}
-          {view === "week" && (
-            <WeekView
-              cursor={cursor}
-              eventsByDay={eventsByDay}
-              brandMap={brandMap}
-              today={today}
-              onSelect={selectCampaign}
-            />
-          )}
-          {view === "day" && (
-            <DayView
-              cursor={cursor}
-              eventsByDay={eventsByDay}
-              brandMap={brandMap}
-              onSelect={selectCampaign}
-            />
-          )}
+        <section
+          className="v-fadeup mb-[26px] rounded-[14px] border border-hair bg-surface p-4"
+          style={{ animationDelay: "120ms" }}
+        >
+          {/* Keyed by view + period so Vivid re-animates: cross-fade on view
+              switch, direction-aware slide on prev/next. */}
+          <div
+            key={`${view}-${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`}
+            className={navDir > 0 ? "v-slideL" : navDir < 0 ? "v-slideR" : "v-view"}
+          >
+            {view === "month" && (
+              <MonthView
+                cursor={cursor}
+                eventsByDay={eventsByDay}
+                brandMap={brandMap}
+                today={today}
+                onSelect={selectCampaign}
+              />
+            )}
+            {view === "week" && (
+              <WeekView
+                cursor={cursor}
+                eventsByDay={eventsByDay}
+                brandMap={brandMap}
+                today={today}
+                onSelect={selectCampaign}
+              />
+            )}
+            {view === "day" && (
+              <DayView
+                cursor={cursor}
+                eventsByDay={eventsByDay}
+                brandMap={brandMap}
+                onSelect={selectCampaign}
+              />
+            )}
+          </div>
         </section>
 
         <div className="mb-3 flex items-center justify-between gap-2">
