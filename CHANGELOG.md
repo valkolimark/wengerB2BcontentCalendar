@@ -3,6 +3,51 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.4.0] — Cycle 11 — 2026-06-16 — AI assistant (read-only)
+
+A conversational, read-only assistant over the live tracker data. An **Ask**
+button in the app bar opens a chat panel; the user asks plain-language questions
+("when's the next email for Prop 28?", "what's the UTM for …?", "what SF campaign
+does X report into?") and the assistant answers from the data via tools. No
+writes this cycle (conversational creation is Cycle 12); no schema/RLS changes.
+
+**The one invariant:** the assistant's tools fetch **only** through the existing
+role-aware data layer (`getHomeData`), bound to the caller's session — no
+service-role key, no raw SQL, no new DB path — so it inherits financial gating
+for free (an unentitled session's tool results carry no `leads`/`pipeline`; RLS
+strips them before the model sees anything).
+
+### Added
+
+- Dependency `@anthropic-ai/sdk`; **server-only** `ANTHROPIC_API_KEY`
+  (`.env.example` + README env table / go-live checklist). Never a
+  `NEXT_PUBLIC_*` name; verified absent from the client bundle.
+- `src/lib/assistant/model.ts` — single `ASSISTANT_MODEL` constant + loop bounds.
+- `src/app/api/assistant/route.ts` — POST handler: authenticates via
+  `getCurrentProfile` (no profile → **401**; missing key → 503), runs a bounded
+  (≤ 6 iterations, capped `max_tokens`) Anthropic tool-use loop server-side
+  against the role-aware snapshot, and streams the final text back. Conversation
+  state is client-side (no persistence).
+- `src/lib/assistant/tools.ts` — read-only tools over one `getHomeData`
+  snapshot: `get_overview`, `search_campaigns`, `get_campaign` (facts + SF parent
+  chain via `sfParentChain` + live `assembleUtm`), `get_initiative` (rollup +
+  children), `list_upcoming_events`. `leads`/`pipeline` are included **only when
+  entitled** (absent otherwise — RLS, not a client mask).
+- `src/lib/assistant/system.ts` — server-dated system prompt: brand vocabulary +
+  routing hints; answer only from tool results; never invent codes/dates/UTMs/
+  numbers; read-only.
+- `src/components/assistant/AssistantPanel.tsx` — slide-in chat panel (drawer
+  styling language) opened from the app-bar **Ask** button; streaming render,
+  busy/error states; IBM Plex Mono for echoed UTMs/codes. Available to all
+  authenticated roles (external users get scrubbed answers).
+
+### Changed
+
+- `middleware` now returns a JSON **401** for unauthenticated `/api/*` requests
+  (instead of redirecting to the `/login` HTML page), so fetch clients — and the
+  `/api/assistant` 401 acceptance check — behave correctly. Page redirects are
+  unchanged.
+
 ## [1.3.0] — Cycle 10 — 2026-06-08 — Salesforce reporting parents
 
 Campaigns can reference a Salesforce rollup parent; the app stays two-level and
