@@ -35,7 +35,7 @@ export function InitiativeCards({
 
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[13px]">
-      {sorted.map((init) => (
+      {sorted.map((init, i) => (
         <InitiativeCard
           key={init.id}
           initiative={init}
@@ -43,6 +43,7 @@ export function InitiativeCards({
           brandMap={brandMap}
           canSeeFinancials={canSeeFinancials}
           onSelect={() => onSelect(init.id)}
+          index={i}
         />
       ))}
     </div>

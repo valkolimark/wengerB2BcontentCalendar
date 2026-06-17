@@ -98,7 +98,7 @@ export function DetailDrawer({
       onClick={onClose}
     >
       <aside
-        className="h-full w-[412px] max-w-[92vw] overflow-y-auto bg-surface"
+        className="v-drawer h-full w-[412px] max-w-[92vw] overflow-y-auto bg-surface"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -223,8 +223,8 @@ function CampaignBody({
   return (
     <>
       <div
-        className="flex items-center justify-between px-4 py-3.5"
-        style={{ background: tint }}
+        className="v-drawer-head flex items-center justify-between px-4 py-3.5"
+        style={{ background: tint, ["--b-dot"]: dot } as React.CSSProperties}
       >
         <div className="inline-flex items-center gap-2 text-[13px] font-semibold" style={{ color: text }}>
           <span className="size-2.5 rounded-[3px]" style={{ background: dot }} />
@@ -294,8 +294,12 @@ function CampaignBody({
 
         <SecLabel>Timeline</SecLabel>
         <div className="flex flex-col gap-0.5">
-          {timeline.map((ev) => (
-            <div key={ev.id} className="flex items-center gap-2.5 py-[7px] text-[13px]">
+          {timeline.map((ev, ri) => (
+            <div
+              key={ev.id}
+              className="v-row flex items-center gap-2.5 py-[7px] text-[13px]"
+              style={{ animationDelay: `${ri * 45}ms` }}
+            >
               <span
                 className="flex size-6 shrink-0 items-center justify-center rounded-[7px]"
                 style={{ color: text, background: tint }}

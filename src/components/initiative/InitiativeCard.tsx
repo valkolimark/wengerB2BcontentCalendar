@@ -12,22 +12,36 @@ const PLACEHOLDER = { dot: "#D8D5CC" };
  * status, brand-colored progress, next milestone, "X of N sent", financials,
  * and owner initials. Clicking opens the initiative drawer.
  */
+// Maps an initiative status to a Vivid status-pill gradient state.
+const PILL_STATE: Record<string, "active" | "soon" | "planning"> = {
+  "In flight": "active",
+  "On track": "active",
+  "Launching soon": "soon",
+  "In review": "soon",
+  Planning: "planning",
+  Complete: "planning",
+};
+
 export function InitiativeCard({
   initiative,
   rollup,
   brandMap,
   canSeeFinancials,
   onSelect,
+  index = 0,
 }: {
   initiative: Initiative;
   rollup: Rollup;
   brandMap: Record<string, Brand>;
   canSeeFinancials: boolean;
   onSelect: () => void;
+  index?: number;
 }) {
   const st = STATUS[initiative.status] ?? STATUS.Planning;
   const bs = rollup.brands.map((id) => brandMap[id]).filter(Boolean);
   const bars = bs.length ? bs : [PLACEHOLDER];
+  const pct = Math.round(rollup.progress * 100);
+  const primaryDot = bs[0]?.dot ?? "#999";
 
   const meta: string[] = [];
   if (canSeeFinancials) {
@@ -47,11 +61,16 @@ export function InitiativeCard({
     <button
       type="button"
       onClick={onSelect}
-      className="relative overflow-hidden rounded-[14px] border border-hair bg-surface py-[15px] pl-[19px] pr-4 text-left transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-[#d5d1c7] hover:shadow-[0_6px_18px_rgba(0,0,0,.05)]"
+      className="v-card v-mount relative overflow-hidden rounded-[14px] border border-hair bg-surface py-[15px] pl-[19px] pr-4 text-left transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-[#d5d1c7] hover:shadow-[0_6px_18px_rgba(0,0,0,.05)]"
+      style={{ ["--b-dot"]: primaryDot, animationDelay: `${index * 70}ms` } as React.CSSProperties}
     >
-      <span className="absolute inset-y-0 left-0 flex w-1 flex-col">
+      <span className="v-accent absolute inset-y-0 left-0 flex w-1 flex-col">
         {bars.map((b, k) => (
-          <span key={k} className="flex-1" style={{ background: b.dot }} />
+          <span
+            key={k}
+            className="v-bar flex-1"
+            style={{ background: b.dot, ["--b-dot"]: b.dot } as React.CSSProperties}
+          />
         ))}
       </span>
 
@@ -69,7 +88,8 @@ export function InitiativeCard({
           {initiative.name}
         </span>
         <span
-          className="whitespace-nowrap rounded-[7px] px-[9px] py-0.5 text-[11px] font-semibold"
+          className="v-status whitespace-nowrap rounded-[7px] px-[9px] py-0.5 text-[11px] font-semibold"
+          data-state={PILL_STATE[initiative.status] ?? "planning"}
           style={{ background: st.bg, color: st.fg }}
         >
           {initiative.status}
@@ -84,11 +104,12 @@ export function InitiativeCard({
 
       <div className="my-[11px] h-1.5 overflow-hidden rounded bg-[var(--color-surface-2)]">
         <span
-          className="block h-full rounded"
+          className="v-fill block h-full rounded"
           style={{
-            width: `${Math.round(rollup.progress * 100)}%`,
-            background: bs[0]?.dot ?? "#999",
-          }}
+            width: `${pct}%`,
+            background: primaryDot,
+            ["--target-w"]: `${pct}%`,
+          } as React.CSSProperties}
         />
       </div>
 

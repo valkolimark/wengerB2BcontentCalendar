@@ -49,7 +49,10 @@ export function Toolbar({
           <ChevronLeft size={18} />
         </button>
         <div className="min-w-[150px] text-[19px] font-semibold tracking-[-0.02em]">
-          {periodTitle(view, cursor)}
+          {/* keyed so the Vivid theme re-mounts (and re-animates) on change */}
+          <span key={periodTitle(view, cursor)} className="v-title inline-block">
+            {periodTitle(view, cursor)}
+          </span>
         </div>
         <button
           type="button"
@@ -76,7 +79,7 @@ export function Toolbar({
               key={v}
               type="button"
               onClick={() => onView(v)}
-              className="rounded-[7px] px-[15px] py-1.5 text-[13px] font-medium transition-colors"
+              className="v-seg-btn rounded-[7px] px-[15px] py-1.5 text-[13px] font-medium transition-colors"
               style={{
                 background: on ? "var(--color-surface)" : "transparent",
                 color: on ? "var(--color-ink)" : "var(--color-ink-muted)",

@@ -30,11 +30,12 @@ export function BrandLegend({
               type="button"
               onClick={() => onToggle(b.id)}
               aria-pressed={!off}
-              className="inline-flex items-center gap-[7px] rounded-[20px] border border-line bg-surface px-[11px] py-[5px] text-[12.5px] transition-colors hover:border-[#cfcbc0]"
-              style={{ opacity: off ? 0.38 : 1 }}
+              data-off={off}
+              className="v-legend-chip inline-flex items-center gap-[7px] rounded-[20px] border border-line bg-surface px-[11px] py-[5px] text-[12.5px] transition-colors hover:border-[#cfcbc0]"
+              style={{ opacity: off ? 0.38 : 1, ["--b-dot"]: b.dot } as React.CSSProperties}
             >
               <span
-                className="size-2.5 shrink-0 rounded-[3px]"
+                className="v-dot size-2.5 shrink-0 rounded-[3px]"
                 style={{ background: b.dot }}
               />
               {b.label}

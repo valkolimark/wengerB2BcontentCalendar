@@ -24,6 +24,26 @@ export const tintOf = (dot: string): string => mix(dot, "#ffffff", 0.86);
 /** Readable text color derived from a brand's dot color. */
 export const textOf = (dot: string): string => mix(dot, "#000000", 0.5);
 
+/**
+ * Two-stop [light, dark] gradient derived from a brand's dot. Single-sourced
+ * from `dot` (no invented palette) — Vivid theme only. Tuned subtle so launch
+ * fills read as the brand color, not a rainbow.
+ */
+export const gradOf = (dot: string): [string, string] => [
+  mix(dot, "#ffffff", 0.18),
+  mix(dot, "#000000", 0.22),
+];
+
+/** The brand color at an arbitrary alpha (rgba) — faint surfaces, glows. */
+export const tint = (hex: string, a: number): string => {
+  const [r, g, b] = hx(hex);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
+
+/** CSS `linear-gradient(...)` string from a brand's `grad` stops. */
+export const gradCss = (grad: [string, string]): string =>
+  `linear-gradient(135deg, ${grad[0]} 0%, ${grad[1]} 100%)`;
+
 /* ------------------------------- brands -------------------------------- */
 const BASE_BRANDS: Pick<Brand, "id" | "label" | "dot">[] = [
   { id: "wenger", label: "Wenger", dot: "#1C3B66" },
@@ -39,6 +59,7 @@ export const BRANDS: Brand[] = BASE_BRANDS.map((b) => ({
   ...b,
   tint: tintOf(b.dot),
   text: textOf(b.dot),
+  grad: gradOf(b.dot),
 }));
 
 export const brandById = (id: string): Brand | undefined =>

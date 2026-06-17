@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, entitledToFinancials } from "@/lib/auth";
+import { gradOf } from "@/lib/brands";
 import type {
   Brand,
   CampaignWithEvents,
@@ -78,8 +79,14 @@ export async function getHomeData(): Promise<HomeData> {
     };
   });
 
+  // `grad` is derived (not a DB column) so the Vivid theme has gradient stops
+  // single-sourced from each brand's `dot`.
+  const brands: Brand[] = (
+    (brandsRes.data ?? []) as Omit<Brand, "grad">[]
+  ).map((b) => ({ ...b, grad: gradOf(b.dot) }));
+
   return {
-    brands: (brandsRes.data ?? []) as Brand[],
+    brands,
     initiatives: (initiativesRes.data ?? []) as Initiative[],
     campaigns,
     sfParents: (sfParentsRes.data ?? []) as SfParent[],

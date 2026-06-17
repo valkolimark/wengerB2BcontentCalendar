@@ -74,6 +74,9 @@ export type Brand = {
   dot: string; // base brand color (hex)
   tint: string; // light fill derived from dot
   text: string; // readable text color derived from dot
+  // Two-stop [light, dark] gradient derived from dot. Used by the Vivid theme
+  // for launch fills, accent bars, and glows; ignored by light/dark.
+  grad: [string, string];
 };
 
 export type InitiativeStatus =
