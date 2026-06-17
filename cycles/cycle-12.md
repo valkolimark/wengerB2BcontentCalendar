@@ -1,4 +1,4 @@
-# Cycle 11 — Vivid theme: color & motion (v1.4.0)
+# Cycle 12 — Vivid theme: color & motion (v1.5.0)
 
 **Goal:** Ship "Vivid" — a high-color, animated skin for the calendar home — as
 an **opt-in third theme** alongside light/dark. The seven brand colors become
@@ -17,7 +17,7 @@ foundation Vivid branches off — that dependency is **met**.
 
 ## Spec reconciliation
 
-- **Numbered** Cycle 11 → **v1.4.0**. No migration (presentation only; `0006`
+- **Numbered** Cycle 12 . No migration (presentation only; `0006`
   was the last, taken by Cycle 10).
 - **`grad` is derived, not invented.** The spec's gradient stops were
   placeholders. Real brand hexes already live in `src/lib/brands.ts`
