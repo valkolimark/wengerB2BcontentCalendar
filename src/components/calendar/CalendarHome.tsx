@@ -4,8 +4,9 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ShieldCheck, Plus, LogOut, Users } from "lucide-react";
+import { ShieldCheck, Plus, LogOut, Users, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { AssistantPanel } from "@/components/assistant/AssistantPanel";
 import type {
   Brand,
   CalendarEvent,
@@ -80,6 +81,7 @@ export function CalendarHome({
   const [selected, setSelected] = useState<Selected>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const [importing, setImporting] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [q, setQ] = useState("");
   const [, startDelete] = useTransition();
 
@@ -251,6 +253,14 @@ export function CalendarHome({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setAssistantOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-surface px-2.5 py-[6px] text-[13px] font-medium transition-colors hover:border-[#d5d1c7] hover:bg-[var(--color-hover)]"
+            title="Ask the assistant"
+          >
+            <Sparkles size={14} /> Ask
+          </button>
           <ThemeToggle />
           <DataMenu
             brands={brands}
@@ -450,6 +460,8 @@ export function CalendarHome({
           onClose={() => setImporting(false)}
         />
       )}
+
+      <AssistantPanel open={assistantOpen} onClose={() => setAssistantOpen(false)} />
     </div>
   );
 }

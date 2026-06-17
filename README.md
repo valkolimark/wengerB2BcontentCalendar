@@ -94,6 +94,8 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SUPABASE_URL` — your project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the public anon key
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only; never expose to the browser
+- `ANTHROPIC_API_KEY` — server-only; powers the [AI assistant](#ai-assistant).
+  Optional — the app runs without it; only the assistant is disabled.
 
 ### 3. Run the migrations + seed
 
@@ -172,6 +174,30 @@ not on `campaigns`. **Row-Level Security** is the backstop:
 
 Server Actions also re-check the caller's role server-side (defense in depth);
 RLS is the authoritative backstop. The client role flag only hides UI.
+
+## AI assistant
+
+An **Ask** button in the app bar opens a read-only conversational assistant.
+Ask plain-language questions about your own tracker data — "when's the next
+email for Prop 28?", "what's the UTM for the Prop 28 secondary campaign?", "what
+Salesforce campaign does X report into?" — and it answers from the live data.
+
+**Read-only.** It looks things up; it can't create, edit, or delete anything
+(conversational creation is a later cycle). It answers only from tool results
+and won't fabricate a code, date, UTM, or number.
+
+**It inherits the same gating — by construction, not a separate check.** The
+assistant's tools fetch through the *existing* role-aware data layer
+(`getHomeData`), bound to your session — no service-role key, no raw SQL, no new
+DB path. So an unentitled caller's tool results carry **no** `leads`/`pipeline`
+(RLS strips them before the model ever sees anything), and `external` users get
+scrubbed, read-only answers — exactly as the UI already enforces. The assistant
+is not a new way for financials to leak.
+
+Powered by Anthropic; set **`ANTHROPIC_API_KEY`** (server-only) to enable it.
+The server runs a bounded tool-use loop and streams the answer back; the
+conversation lives in the browser only (no chat history is stored). Posting to
+`POST /api/assistant` without a session returns **401**.
 
 ## Spreadsheet export / import
 
@@ -253,6 +279,7 @@ notes](#notes)).
    | `NEXT_PUBLIC_SUPABASE_URL` | All | public |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | All | public |
    | `SUPABASE_SERVICE_ROLE_KEY` | Production/Preview (server) | **server-only — never expose**; the app itself doesn't use it, but keep it out of any `NEXT_PUBLIC_*` name |
+   | `ANTHROPIC_API_KEY` | Production/Preview (server) | **server-only — never expose**; powers the AI assistant. Never a `NEXT_PUBLIC_*` name. Omit to disable the assistant (it returns 503) |
 3. **Deploy a preview**, smoke-test, then **promote to production**.
 4. Point Supabase auth at the production domain (below) so login redirects work.
 
@@ -263,7 +290,8 @@ allowing `self`, the Supabase origin, and Google Fonts) are set in
 
 ## Go-live checklist
 
-- [ ] Vercel env vars set; **`service_role` is not in any `NEXT_PUBLIC_*` var**.
+- [ ] Vercel env vars set; **neither `service_role` nor `ANTHROPIC_API_KEY` is
+      in any `NEXT_PUBLIC_*` var** (both server-only).
 - [ ] Supabase → Authentication → URL Configuration: **Site URL** and
       **Redirect URLs** set to the Vercel production domain.
 - [ ] Supabase → Authentication → Providers → Email: **"Allow new users to sign

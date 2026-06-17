@@ -44,6 +44,11 @@ export async function updateSession(request: NextRequest) {
   );
 
   if (!user && !isPublic) {
+    // API routes answer to fetch clients, not browsers — return a real 401 (JSON)
+    // instead of redirecting to the /login HTML page, so callers can handle it.
+    if (path.startsWith("/api/")) {
+      return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
