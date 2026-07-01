@@ -10,6 +10,7 @@ import type { SfParent } from "@/lib/types";
 import { requireStaff, requireAdmin } from "@/lib/auth";
 import type {
   CampaignInput,
+  DeliverableInput,
   ImportPayload,
   ImportReport,
   Role,
@@ -324,6 +325,179 @@ export async function deleteCampaign(id: string) {
   await requireStaff();
   const supabase = await createClient();
   const { error } = await supabase.from("campaigns").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+}
+
+/* ------------------------------ deliverables ----------------------------- */
+// Cycle 12: a campaign fans out to deliverables (email/blog/social). Each keeps
+// its own SF member code, utm_content, editable utm_source (pardot|salesforce),
+// a comp→code→send chain, and audience lists. Chain + lists are replace-on-save.
+
+const DELIVERABLE_KINDS = ["email", "blog", "social"];
+const UTM_SOURCES = ["pardot", "salesforce"];
+
+// Scalar deliverable columns, normalized (blanks → null).
+function deliverableFields(input: DeliverableInput) {
+  const kind = DELIVERABLE_KINDS.includes(input.kind) ? input.kind : "email";
+  const utm_source = UTM_SOURCES.includes(input.utm_source)
+    ? input.utm_source
+    : "pardot";
+  return {
+    campaign_id: input.campaign_id,
+    kind,
+    name: input.name.trim(),
+    sf_code: input.sf_code.trim() || null,
+    sf_id: input.sf_id.trim() || null,
+    sf_name: input.sf_name.trim() || null,
+    utm_content: input.utm_content.trim() || null,
+    utm_source,
+    email_subject: input.email_subject.trim() || null,
+    segment: input.segment.trim() || null,
+    landing_page: input.landing_page.trim() || null,
+    deliver_at: input.deliver_at || null,
+    sort: input.sort,
+  };
+}
+
+// Replace a deliverable's chain (comp/code/send) and list links wholesale.
+async function writeChainAndLists(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  deliverableId: string,
+  input: DeliverableInput,
+  { fresh }: { fresh: boolean }
+) {
+  if (!fresh) {
+    await supabase
+      .from("deliverable_tasks")
+      .delete()
+      .eq("deliverable_id", deliverableId);
+    await supabase
+      .from("deliverable_lists")
+      .delete()
+      .eq("deliverable_id", deliverableId);
+  }
+
+  const tasks = input.tasks
+    .filter((t) => t.due || t.owner.trim())
+    .map((t) => ({
+      deliverable_id: deliverableId,
+      kind: t.kind,
+      due: t.due || null,
+      owner: t.owner.trim() || null,
+    }));
+  if (tasks.length) {
+    const { error } = await supabase.from("deliverable_tasks").insert(tasks);
+    if (error) throw new Error(error.message);
+  }
+
+  const links = [...new Set(input.list_ids)].map((list_id) => ({
+    deliverable_id: deliverableId,
+    list_id,
+  }));
+  if (links.length) {
+    const { error } = await supabase.from("deliverable_lists").insert(links);
+    if (error) throw new Error(error.message);
+  }
+}
+
+export async function createDeliverable(
+  input: DeliverableInput
+): Promise<string> {
+  await requireStaff();
+  if (!input.name.trim()) throw new Error("Deliverable name is required.");
+  if (!input.campaign_id) throw new Error("A campaign is required.");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("deliverables")
+    .insert(deliverableFields(input))
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  await writeChainAndLists(supabase, data.id, input, { fresh: true });
+  revalidatePath("/");
+  return data.id as string;
+}
+
+export async function updateDeliverable(id: string, input: DeliverableInput) {
+  await requireStaff();
+  if (!input.name.trim()) throw new Error("Deliverable name is required.");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("deliverables")
+    .update(deliverableFields(input))
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+
+  await writeChainAndLists(supabase, id, input, { fresh: false });
+  revalidatePath("/");
+}
+
+export async function deleteDeliverable(id: string) {
+  await requireStaff();
+  const supabase = await createClient();
+  // Tasks + list links cascade via their FKs (ON DELETE CASCADE).
+  const { error } = await supabase.from("deliverables").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+}
+
+/* --------------------------------- lists --------------------------------- */
+// Audience lists are a staff-editable controlled vocabulary with a stored reach
+// snapshot (seeded in 0007). Corrections happen here; deletes cascade to links.
+
+export async function createList(input: {
+  name: string;
+  reach: number;
+  region: string;
+}): Promise<string> {
+  await requireStaff();
+  const name = input.name.trim();
+  if (!name) throw new Error("List name is required.");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lists")
+    .insert({
+      name,
+      reach: Math.max(0, Math.round(input.reach) || 0),
+      region: input.region.trim() || null,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+  return data.id as string;
+}
+
+export async function updateList(
+  id: string,
+  input: { name: string; reach: number; region: string }
+) {
+  await requireStaff();
+  const name = input.name.trim();
+  if (!name) throw new Error("List name is required.");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("lists")
+    .update({
+      name,
+      reach: Math.max(0, Math.round(input.reach) || 0),
+      region: input.region.trim() || null,
+    })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+}
+
+export async function deleteList(id: string) {
+  await requireStaff();
+  const supabase = await createClient();
+  const { error } = await supabase.from("lists").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/");
 }

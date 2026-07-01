@@ -96,6 +96,10 @@ export type Initiative = {
 
 export type EventType = "launch" | "comp";
 
+// Calendar markers: the two campaign events plus deliverable "send" markers
+// (Cycle 12), synthesized from each deliverable's send date.
+export type CalendarMarkerType = EventType | "send";
+
 export type CampaignEvent = {
   id: string;
   campaign_id: string;
@@ -109,7 +113,7 @@ export type CampaignEvent = {
 export type CalendarEvent = {
   id: string;
   date: string; // ISO yyyy-mm-dd
-  type: EventType;
+  type: CalendarMarkerType;
   label: string;
   brandId: string;
   campaignId: string;
@@ -149,8 +153,87 @@ export type Campaign = {
   pipeline: number;
 };
 
-// A campaign with its events nested — the shape returned by getHomeData.
-export type CampaignWithEvents = Campaign & { events: EventLite[] };
+/* ------------------------------ deliverables ----------------------------- */
+// Cycle 12: the third tier. A campaign fans out to one or more deliverables
+// (the actual sends/assets). Each email deliverable carries its own SF member
+// code + id, utm_content, a comp→code→send chain, and one-or-more audience lists.
+
+export type DeliverableKind = "email" | "blog" | "social";
+export type DeliverableTaskKind = "comp" | "code" | "send";
+export type UtmSource = "pardot" | "salesforce";
+
+// One step of a deliverable's comp → code → send hand-off chain.
+export type DeliverableTask = {
+  id: string;
+  deliverable_id: string;
+  kind: DeliverableTaskKind;
+  due: string | null; // ISO yyyy-mm-dd
+  owner: string | null;
+};
+
+// A staff-editable audience list with a stored reach snapshot.
+export type List = {
+  id: string;
+  name: string;
+  reach: number;
+  region: string | null;
+};
+
+export type Deliverable = {
+  id: string;
+  // Nullable to mirror the FK; a deliverable without a campaign shouldn't occur
+  // (ON DELETE CASCADE), but the column is nullable so we type it honestly.
+  campaign_id: string | null;
+  kind: DeliverableKind;
+  name: string;
+  // The SF member code — drives utm_campaign for this send.
+  sf_code: string | null;
+  sf_id: string | null;
+  sf_name: string | null;
+  utm_content: string | null;
+  // Stored + editable; default "pardot", "salesforce" also allowed. Supersedes
+  // the campaign-level "any SF identity → salesforce" rule for deliverables.
+  utm_source: UtmSource | string;
+  email_subject: string | null;
+  segment: string | null;
+  landing_page: string | null;
+  deliver_at: string | null; // ISO timestamptz
+  sort: number;
+  created_at?: string;
+};
+
+// A deliverable with its chain + lists nested — the shape returned by getHomeData.
+export type DeliverableWithMeta = Deliverable & {
+  tasks: DeliverableTask[];
+  lists: List[];
+};
+
+// A campaign with its events + deliverables nested — the shape from getHomeData.
+export type CampaignWithEvents = Campaign & {
+  events: EventLite[];
+  deliverables: DeliverableWithMeta[];
+};
+
+// Editable deliverable fields submitted from the deliverable form. utm_source is
+// chosen (pardot|salesforce); utm_medium/utm_campaign derive server/preview-side.
+export type DeliverableInput = {
+  campaign_id: string;
+  kind: DeliverableKind;
+  name: string;
+  sf_code: string;
+  sf_id: string;
+  sf_name: string;
+  utm_content: string;
+  utm_source: string;
+  email_subject: string;
+  segment: string;
+  landing_page: string;
+  deliver_at: string | null; // ISO timestamptz or null
+  sort: number;
+  // The comp/code/send chain (any subset) and selected list ids.
+  tasks: { kind: DeliverableTaskKind; due: string | null; owner: string }[];
+  list_ids: string[];
+};
 
 // Editable campaign fields submitted from the campaign form. utm_source/medium
 // are derived server-side from vendor/channel, so they aren't part of the input.

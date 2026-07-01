@@ -72,3 +72,27 @@ export const assembleUtm = (params: {
 }): string =>
   `?utm_source=${params.source}&utm_medium=${params.medium}` +
   `&utm_campaign=${params.campaign}&utm_content=${params.content}`;
+
+/* ------------------------------ deliverables ----------------------------- */
+// Cycle 12: deliverable-level UTM. Unlike campaigns (where any SF identity forces
+// utm_source=salesforce), a deliverable stores its own source — default "pardot",
+// "salesforce" also allowed. Medium derives from the deliverable kind, and
+// utm_campaign is the deliverable's own SF member code.
+
+/** Map a deliverable kind to its UTM medium. */
+export const deliverableMedium = (kind: string): string =>
+  kind === "email" ? "email" : kind === "social" ? "social" : "referral";
+
+/** Assemble the UTM string for a single deliverable (source is stored/editable). */
+export const assembleDeliverableUtm = (d: {
+  utm_source?: string | null;
+  kind: string;
+  sf_code?: string | null;
+  utm_content?: string | null;
+}): string =>
+  assembleUtm({
+    source: d.utm_source || "pardot",
+    medium: deliverableMedium(d.kind),
+    campaign: d.sf_code || "SF-CODE",
+    content: d.utm_content || "content",
+  });

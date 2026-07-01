@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import {
   X,
   Send,
   Palette,
   Copy,
   Check,
-  Lock,
   Tag,
   Building2,
   Users,
@@ -18,19 +18,35 @@ import {
   Trash2,
   Hash,
   GitBranch,
+  Plus,
+  Code2,
+  Radio,
 } from "lucide-react";
 import type {
   Brand,
   CampaignWithEvents,
+  DeliverableWithMeta,
   Initiative,
+  List,
   Selected,
   SfParent,
 } from "@/lib/types";
 import { STATUS } from "@/lib/brands";
 import { rollup } from "@/lib/rollups";
 import { fmtMoney } from "@/lib/format";
-import { assembleUtm } from "@/lib/utm";
+import { assembleDeliverableUtm } from "@/lib/utm";
+import {
+  KIND_LABEL,
+  TASK_LABEL,
+  fmtReach,
+  orderedTasks,
+  reachOf,
+  sortDeliverables,
+} from "@/lib/deliverables";
+import { deleteDeliverable } from "@/lib/actions";
 import { sfParentChain } from "@/lib/sf";
+import { DeliverableModal } from "@/components/modals/DeliverableModal";
+import { JiraExportModal } from "@/components/modals/JiraExportModal";
 
 type OpenSelection = NonNullable<Selected>;
 
@@ -39,6 +55,7 @@ export function DetailDrawer({
   brandMap,
   initiatives,
   campaigns,
+  lists,
   today,
   canSeeFinancials,
   canWrite,
@@ -52,6 +69,7 @@ export function DetailDrawer({
   brandMap: Record<string, Brand>;
   initiatives: Initiative[];
   campaigns: CampaignWithEvents[];
+  lists: List[];
   today: Date;
   canSeeFinancials: boolean;
   canWrite: boolean;
@@ -112,6 +130,7 @@ export function DetailDrawer({
                 ? initiatives.find((i) => i.id === campaign.initiative_id) ?? null
                 : null
             }
+            lists={lists}
             canSeeFinancials={canSeeFinancials}
             sfParents={sfParents}
             copied={copied}
@@ -181,6 +200,7 @@ function CampaignBody({
   campaign,
   brand,
   parent,
+  lists,
   canSeeFinancials,
   canWrite,
   sfParents,
@@ -194,6 +214,7 @@ function CampaignBody({
   campaign: CampaignWithEvents;
   brand: Brand | undefined;
   parent: Initiative | null;
+  lists: List[];
   canSeeFinancials: boolean;
   canWrite: boolean;
   sfParents: SfParent[];
@@ -204,21 +225,35 @@ function CampaignBody({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const router = useRouter();
+  const [, startDelete] = useTransition();
+  // Deliverable editor: false = closed, null = new, object = editing that one.
+  const [delivModal, setDelivModal] =
+    useState<DeliverableWithMeta | null | false>(false);
+  const [jiraOpen, setJiraOpen] = useState(false);
+
   const tint = brand?.tint ?? "var(--color-hover)";
   const text = brand?.text ?? "var(--color-ink-soft)";
   const dot = brand?.dot ?? "#A09E94";
 
-  // Assemble (never store) the UTM string from the campaign's fields.
-  const utm = assembleUtm({
-    source: campaign.utm_source,
-    medium: campaign.utm_medium,
-    campaign: campaign.sf_code,
-    content: campaign.utm_content,
-  });
+  const deliverables = sortDeliverables(campaign.deliverables);
+  const emailCount = deliverables.filter((d) => d.kind === "email").length;
 
   const timeline = campaign.events
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
+
+  const removeDeliverable = (d: DeliverableWithMeta) => {
+    if (!window.confirm(`Delete deliverable “${d.name}”?`)) return;
+    startDelete(async () => {
+      try {
+        await deleteDeliverable(d.id);
+        router.refresh();
+      } catch (e) {
+        window.alert(e instanceof Error ? e.message : String(e));
+      }
+    });
+  };
 
   return (
     <>
@@ -310,31 +345,262 @@ function CampaignBody({
           ))}
         </div>
 
-        <SecLabel>
-          UTM query string
-          <span className="ml-1.5 rounded-md bg-[#e7f1e6] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-[#2e6b3e]">
-            auto-assembled
-          </span>
-        </SecLabel>
-        <div className="flex items-center gap-2 rounded-[10px] border border-hair bg-[var(--color-surface-2)] px-3 py-[11px]">
-          <code className="flex-1 break-all text-[11.5px] leading-relaxed text-[var(--color-ink-muted)]">
-            {utm}
-          </code>
-          <button
-            type="button"
-            onClick={() => onCopy(utm)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-[var(--color-hover)]"
-          >
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copied ? "Copied" : "Copy"}
-          </button>
+        <div className="mb-2.5 mt-[22px] flex items-center justify-between">
+          <div className="flex items-center text-[11px] font-semibold uppercase tracking-[0.05em] text-faint">
+            Deliverables
+            <span className="ml-1.5 rounded-md bg-[var(--color-surface-2)] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-ink-muted">
+              {deliverables.length}
+            </span>
+          </div>
+          {canWrite && (
+            <div className="flex items-center gap-1">
+              {emailCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setJiraOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-md border border-line bg-surface px-2 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:bg-[var(--color-hover)]"
+                >
+                  <GitBranch size={11} /> Jira
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setDelivModal(null)}
+                className="inline-flex items-center gap-1 rounded-md border border-navy bg-navy px-2 py-1 text-[11px] font-medium text-white transition-colors hover:bg-navy-dark"
+              >
+                <Plus size={11} /> Deliverable
+              </button>
+            </div>
+          )}
         </div>
-        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-faint">
-          <Lock size={11} /> source · medium · campaign · content resolve from
-          Vendor, Channel &amp; SF code
+        <div className="flex flex-col gap-2">
+          {deliverables.map((d) => (
+            <DeliverableCard
+              key={d.id}
+              deliverable={d}
+              accent={dot}
+              copied={copied}
+              onCopy={onCopy}
+              canWrite={canWrite}
+              onEdit={() => setDelivModal(d)}
+              onDelete={() => removeDeliverable(d)}
+            />
+          ))}
+          {deliverables.length === 0 && (
+            <div className="rounded-[10px] border border-dashed border-line px-4 py-5 text-center text-[13px] text-faint">
+              No deliverables yet.
+              {canWrite && " Add the sends that make up this campaign."}
+            </div>
+          )}
         </div>
       </div>
+
+      {delivModal !== false && (
+        <DeliverableModal
+          deliverable={delivModal}
+          campaignId={campaign.id}
+          campaignName={campaign.name}
+          lists={lists}
+          onClose={() => setDelivModal(false)}
+        />
+      )}
+      {jiraOpen && (
+        <JiraExportModal
+          campaignName={campaign.name}
+          deliverables={deliverables}
+          onClose={() => setJiraOpen(false)}
+        />
+      )}
     </>
+  );
+}
+
+/* ---------------------------- deliverable card ---------------------------- */
+
+const KIND_ACCENT: Record<string, string> = {
+  email: "#3f6fb0",
+  blog: "#7a5bb0",
+  social: "#2f9e8f",
+};
+
+function DeliverableCard({
+  deliverable: d,
+  accent,
+  copied,
+  onCopy,
+  canWrite,
+  onEdit,
+  onDelete,
+}: {
+  deliverable: DeliverableWithMeta;
+  accent: string;
+  copied: boolean;
+  onCopy: (t: string) => void;
+  canWrite: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const utm = assembleDeliverableUtm(d);
+  const tasks = orderedTasks(d.tasks);
+  const reach = reachOf(d.lists);
+  const kindColor = KIND_ACCENT[d.kind] ?? accent;
+
+  return (
+    <div className="overflow-hidden rounded-[10px] border border-hair bg-surface">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-[var(--color-hover)]"
+      >
+        <span
+          className="rounded-[5px] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.04em] text-white"
+          style={{ background: kindColor }}
+        >
+          {KIND_LABEL[d.kind]}
+        </span>
+        <span className="flex-1 truncate text-[13px] font-semibold">{d.name}</span>
+        {d.utm_content && (
+          <span className="hidden font-mono text-[10.5px] text-muted2 sm:inline">
+            {d.utm_content}
+          </span>
+        )}
+        <ChevronRight
+          size={13}
+          className="shrink-0 text-faint transition-transform"
+          style={{ transform: open ? "rotate(90deg)" : "none" }}
+        />
+      </button>
+
+      {open && (
+        <div className="border-t border-[var(--color-hover)] bg-[var(--color-surface-2)] px-3 py-3">
+          {/* comp → code → send chain */}
+          {tasks.length > 0 && (
+            <div className="mb-3 grid grid-cols-3 gap-1.5">
+              {tasks.map((t) => (
+                <div
+                  key={t.id}
+                  className="rounded-[7px] border border-hair bg-surface px-2 py-1.5"
+                  style={{ borderLeft: `3px solid ${kindColor}` }}
+                >
+                  <div className="text-[9.5px] font-semibold uppercase tracking-[0.05em] text-faint">
+                    {TASK_LABEL[t.kind]}
+                  </div>
+                  <div className="font-mono text-[12px] font-semibold">
+                    {t.due ?? "—"}
+                  </div>
+                  {t.owner && (
+                    <div className="truncate text-[11px] text-ink-muted">{t.owner}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* role views: send + coding */}
+          <div className="mb-3 flex flex-col gap-2">
+            {(d.email_subject || d.segment || d.sf_name || d.deliver_at) && (
+              <RoleCard icon={<Mail size={12} />} title="Email send" tint="#0f7a6e">
+                {d.sf_name && <RoleKV k="SF campaign" v={d.sf_name} />}
+                {d.deliver_at && (
+                  <RoleKV k="Deliver" v={d.deliver_at.replace("T", " ").slice(0, 16)} mono />
+                )}
+                {d.email_subject && <RoleKV k="Subject" v={d.email_subject} />}
+                {d.segment && <RoleKV k="Segment" v={d.segment} />}
+              </RoleCard>
+            )}
+            <RoleCard icon={<Code2 size={12} />} title="Coding" tint="#3f6fb0">
+              {d.sf_id && <RoleKV k="Campaign ID" v={d.sf_id} mono />}
+              <RoleKV k="UTM" v={utm} mono />
+              {d.landing_page && <RoleKV k="Landing page" v={d.landing_page} mono />}
+            </RoleCard>
+          </div>
+
+          {/* audience lists */}
+          {d.lists.length > 0 && (
+            <div className="mb-1">
+              <div className="mb-1.5 flex items-center gap-1.5 text-[9.5px] font-semibold uppercase tracking-[0.06em] text-faint">
+                <Radio size={11} /> Audience{d.lists.length > 1 ? " lists" : ""}
+                {d.lists.length > 1 && (
+                  <span className="font-mono normal-case tracking-normal text-[#3f6fb0]">
+                    {fmtReach(reach)} combined
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {d.lists.map((l) => (
+                  <span
+                    key={l.id}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-0.5 text-[11.5px]"
+                  >
+                    {l.name}
+                    <span className="rounded bg-[var(--color-hover)] px-1 font-mono text-[10.5px] text-muted2">
+                      {fmtReach(l.reach)}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* UTM copy + actions */}
+          <div className="mt-2.5 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onCopy(utm)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[11px] transition-colors hover:bg-[var(--color-hover)]"
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied ? "Copied" : "Copy UTM"}
+            </button>
+            <span className="flex-1" />
+            {canWrite && (
+              <>
+                <IconBtn label="Edit deliverable" onClick={onEdit}>
+                  <Pencil size={13} />
+                </IconBtn>
+                <IconBtn label="Delete deliverable" onClick={onDelete}>
+                  <Trash2 size={13} />
+                </IconBtn>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RoleCard({
+  icon,
+  title,
+  tint,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  tint: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[8px] border border-hair bg-surface">
+      <div
+        className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-white"
+        style={{ background: tint }}
+      >
+        {icon} {title}
+      </div>
+      <div className="flex flex-col px-2.5 py-1.5">{children}</div>
+    </div>
+  );
+}
+
+function RoleKV({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
+  return (
+    <div className="flex gap-2 py-[3px] text-[12px]">
+      <span className="min-w-[74px] shrink-0 font-medium text-muted2">{k}</span>
+      <span className={`break-words ${mono ? "font-mono text-[11px]" : ""}`}>{v}</span>
+    </div>
   );
 }
 

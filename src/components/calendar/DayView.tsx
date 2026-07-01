@@ -1,6 +1,12 @@
-import { CalendarDays, Send, Palette } from "lucide-react";
+import { CalendarDays, Send, Palette, Mail } from "lucide-react";
 import type { Brand, CalendarEvent } from "@/lib/types";
 import { key } from "@/lib/dates";
+
+const MARKER_LABEL: Record<CalendarEvent["type"], string> = {
+  send: "Send",
+  launch: "Launch",
+  comp: "Comp review due",
+};
 
 /**
  * Agenda list for the cursor day: a brand bar + icon + campaign name with a
@@ -34,7 +40,7 @@ export function DayView({
     <div className="flex flex-col">
       {evs.map((ev) => {
         const b = brandMap[ev.brandId];
-        const isLaunch = ev.type === "launch";
+        const isSend = ev.type === "send";
         return (
           <button
             type="button"
@@ -49,15 +55,27 @@ export function DayView({
             />
             <span
               className="flex size-[30px] shrink-0 items-center justify-center rounded-lg"
-              style={{ color: b?.text, background: b?.tint }}
+              style={
+                isSend
+                  ? { color: "#fff", background: b?.dot ?? "#A09E94" }
+                  : { color: b?.text, background: b?.tint }
+              }
             >
-              {isLaunch ? <Send size={14} /> : <Palette size={14} />}
+              {ev.type === "send" ? (
+                <Mail size={14} />
+              ) : ev.type === "launch" ? (
+                <Send size={14} />
+              ) : (
+                <Palette size={14} />
+              )}
             </span>
             <span>
-              <span className="block text-sm font-medium">{ev.campaignName}</span>
+              <span className="block text-sm font-medium">
+                {isSend ? ev.label : ev.campaignName}
+              </span>
               <span className="text-xs text-muted2">
-                {b?.label ?? ev.brandId} ·{" "}
-                {isLaunch ? "Launch" : "Comp review due"}
+                {b?.label ?? ev.brandId} · {MARKER_LABEL[ev.type]}
+                {isSend ? ` · ${ev.campaignName}` : ""}
               </span>
             </span>
           </button>

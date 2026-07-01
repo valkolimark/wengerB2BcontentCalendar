@@ -11,6 +11,7 @@ export default async function Home() {
     initiatives,
     campaigns,
     sfParents,
+    lists,
     canSeeFinancials,
     role,
     userEmail,
@@ -25,6 +26,7 @@ export default async function Home() {
       initiatives={initiatives}
       campaigns={campaigns}
       sfParents={sfParents}
+      lists={lists}
       todayKey={todayKey}
       role={role}
       canSeeFinancials={canSeeFinancials}

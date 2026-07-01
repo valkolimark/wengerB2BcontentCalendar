@@ -1,9 +1,17 @@
-import { Send, Palette } from "lucide-react";
+import { Send, Palette, Mail } from "lucide-react";
 import type { Brand, CalendarEvent } from "@/lib/types";
 
+const TITLE: Record<CalendarEvent["type"], string> = {
+  launch: "launch",
+  comp: "comp due",
+  send: "send",
+};
+
 /**
- * A brand-tinted event chip. Launch = filled (brand tint bg, brand text,
- * hairline brand border); comp-due = transparent with a dashed brand border.
+ * A brand-tinted event chip. Three marker styles:
+ *  - send   = solid brand fill, white text (the actual deliverable send — strongest)
+ *  - launch = brand tint fill, brand text, hairline border
+ *  - comp   = transparent with a dashed brand border
  * Clicking opens the campaign in the detail drawer.
  */
 export function EventChip({
@@ -15,24 +23,28 @@ export function EventChip({
   brand: Brand | undefined;
   onSelect: (campaignId: string) => void;
 }) {
-  const isLaunch = event.type === "launch";
   const dot = brand?.dot ?? "#A09E94";
   const tint = brand?.tint ?? "var(--color-surface-2)";
   const text = brand?.text ?? "var(--color-ink-soft)";
+
+  const style =
+    event.type === "send"
+      ? { background: dot, color: "#fff", border: `0.5px solid ${dot}` }
+      : event.type === "launch"
+        ? { background: tint, color: text, border: `0.5px solid ${dot}55` }
+        : { background: "transparent", color: text, border: `1px dashed ${dot}aa` };
 
   return (
     <button
       type="button"
       onClick={() => onSelect(event.campaignId)}
       className="mt-1 flex w-full items-center gap-1 rounded-[7px] px-1.5 py-[3px] text-left text-[11px] font-medium transition-[filter,transform] hover:brightness-[.96] hover:translate-x-px"
-      style={{
-        background: isLaunch ? tint : "transparent",
-        color: text,
-        border: isLaunch ? `0.5px solid ${dot}55` : `1px dashed ${dot}aa`,
-      }}
-      title={`${event.campaignName} — ${isLaunch ? "launch" : "comp due"}`}
+      style={style}
+      title={`${event.campaignName} — ${TITLE[event.type]}`}
     >
-      {isLaunch ? (
+      {event.type === "send" ? (
+        <Mail size={11} className="shrink-0" />
+      ) : event.type === "launch" ? (
         <Send size={11} className="shrink-0" />
       ) : (
         <Palette size={11} className="shrink-0" />

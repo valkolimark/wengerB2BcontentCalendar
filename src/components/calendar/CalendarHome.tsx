@@ -12,11 +12,13 @@ import type {
   CalendarEvent,
   CampaignWithEvents,
   Initiative,
+  List,
   Role,
   Selected,
   SfParent,
 } from "@/lib/types";
 import { parseISO } from "@/lib/dates";
+import { sendDateOf } from "@/lib/deliverables";
 import { deleteCampaign, deleteInitiative, signOut } from "@/lib/actions";
 import { Toolbar } from "./Toolbar";
 import { BrandLegend } from "./BrandLegend";
@@ -58,6 +60,7 @@ export function CalendarHome({
   initiatives,
   campaigns,
   sfParents,
+  lists,
   todayKey,
   role,
   canSeeFinancials,
@@ -67,6 +70,7 @@ export function CalendarHome({
   initiatives: Initiative[];
   campaigns: CampaignWithEvents[];
   sfParents: SfParent[];
+  lists: List[];
   todayKey: string;
   role: Role;
   canSeeFinancials: boolean;
@@ -97,11 +101,12 @@ export function CalendarHome({
   const initiativeById = (id: string | null) =>
     id ? initiatives.find((i) => i.id === id) : undefined;
 
-  // Flatten campaigns → events into the calendar's render shape (Cycle 2 behavior).
+  // Flatten campaigns → events into the calendar's render shape (Cycle 2), plus
+  // deliverable send markers (Cycle 12) synthesized from each send date.
   const calendarEvents = useMemo<CalendarEvent[]>(
     () =>
-      campaigns.flatMap((c) =>
-        c.events.map((e) => ({
+      campaigns.flatMap((c) => {
+        const events: CalendarEvent[] = c.events.map((e) => ({
           id: e.id,
           date: e.date,
           type: e.type,
@@ -109,8 +114,22 @@ export function CalendarHome({
           brandId: c.brand_id,
           campaignId: c.id,
           campaignName: c.name,
-        }))
-      ),
+        }));
+        for (const d of c.deliverables) {
+          const date = sendDateOf(d);
+          if (!date) continue;
+          events.push({
+            id: `send-${d.id}`,
+            date,
+            type: "send",
+            label: d.name,
+            brandId: c.brand_id,
+            campaignId: c.id,
+            campaignName: c.name,
+          });
+        }
+        return events;
+      }),
     [campaigns]
   );
 
@@ -415,6 +434,7 @@ export function CalendarHome({
           brandMap={brandMap}
           initiatives={initiatives}
           campaigns={campaigns}
+          lists={lists}
           today={today}
           canSeeFinancials={canSeeFinancials}
           sfParents={sfParents}
