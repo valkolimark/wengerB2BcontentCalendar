@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wenger B2B — Initiatives, Campaigns & Deliverables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f6f7;--card:#fff;--ink:#18181b;--ink2:#3f3f46;--mut:#71717a;--mut2:#a1a1aa;
+  --line:#e7e7ea;--line2:#d6d6db;--tintbg:#fbfbfc;
+  --wenger:#16305c;--jrc:#2f7d43;--gb:#c02b2b;--ccn:#e07b28;--txs:#3d4f63;--corp:#5b6472;--lut:#128a8a;
+  --tami:#0f7a6e;--adam:#3f6fb0;
+  --ui:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --r:10px;--shadow:0 1px 2px rgba(24,24,27,.04),0 4px 16px rgba(24,24,27,.06);
+}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono)}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 22px 90px}
+
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.top h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+.top p{margin:0;color:var(--mut);max-width:54ch}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font-family:var(--ui);font-size:13px;font-weight:600;border-radius:8px;padding:9px 13px;border:1px solid var(--line2);background:var(--card);color:var(--ink);cursor:pointer;transition:.12s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:#b7b7bf;box-shadow:var(--shadow)}
+.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.primary:hover{background:#000}
+.btn.jira{background:#1868db;color:#fff;border-color:#1868db}.btn.jira:hover{background:#0b5ccc}
+.btn .plus{opacity:.55;font-weight:700}
+.btn.sm{padding:6px 10px;font-size:12px}
+
+.sec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+.sec-h{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.sec-b{padding:16px}
+
+.rosetta{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:stretch}
+.rcol{padding:14px 16px}
+.rcol .k{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.rcol .v{font-weight:700;font-size:15px;letter-spacing:-.01em}
+.rcol .d{color:var(--mut);font-size:12.5px;margin-top:3px}
+.tag-sf{display:inline-block;font-family:var(--mono);font-size:11px;color:#5b6472;background:#f0f1f3;border:1px solid #e2e3e7;border-radius:5px;padding:1px 7px;margin-top:8px}
+.arrow{display:flex;align-items:center;justify-content:center;color:var(--mut2);font-size:18px}
+@media(max-width:780px){.rosetta{grid-template-columns:1fr}.arrow{transform:rotate(90deg);padding:4px 0}}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line)}
+.tab{cursor:pointer;border:1px solid var(--line2);background:var(--card);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--ink2)}
+.tab:hover{border-color:#b7b7bf}.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab .dot{width:9px;height:9px;border-radius:50%}
+.tab .sub{font-weight:500;opacity:.65;font-size:12px}.tab.on .sub{opacity:.8}
+
+.node{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.init{padding:14px 16px;background:var(--tintbg);display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.brandchips{display:flex}
+.chip{width:22px;height:22px;border-radius:6px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line2);margin-left:-6px}.chip:first-child{margin-left:0}
+.init .title{font-weight:700;font-size:16px;letter-spacing:-.01em}
+.init .meta{color:var(--mut);font-size:12.5px;margin-top:1px}
+.init .grow{flex:1}
+.prog{display:flex;align-items:center;gap:9px}
+.prog .bar{width:120px;height:7px;border-radius:99px;background:#ececef;overflow:hidden}
+.prog .bar>i{display:block;height:100%;border-radius:99px}
+.prog .lab{font-size:12px;color:var(--mut);font-family:var(--mono)}
+
+.campaigns{padding:8px}
+.camp{border:1px solid var(--line);border-radius:9px;margin:6px 0;background:#fff}
+.camp-h{display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;flex-wrap:wrap}
+.camp-h .cdot{width:11px;height:11px;border-radius:50%;flex:none}
+.camp-h .cname{font-weight:600}
+.camp-h .ctype{font-size:11.5px;color:var(--mut);background:#f4f4f5;border-radius:5px;padding:1px 7px}
+.camp-h .grow{flex:1}
+.sfpill{font-family:var(--mono);font-size:11px;color:#3f3f46;background:#f4f4f5;border:1px solid #e7e7ea;border-radius:5px;padding:1px 7px}
+.dates{display:flex;gap:12px;font-size:11.5px;color:var(--mut);font-family:var(--mono)}
+.dates .launch::before{content:"●";margin-right:4px;font-size:9px;vertical-align:1px}
+.dates .comp::before{content:"◌";margin-right:4px;font-size:11px}
+.status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+.st-sent{background:#eef7f0;color:#2f7d43}.st-prod{background:#fef3e8;color:#c47614}.st-plan{background:#eef1f5;color:#5b6472}
+.caret{color:var(--mut2);transition:.15s;font-size:12px}.camp.open .caret{transform:rotate(90deg)}
+
+.deliv{display:none;border-top:1px dashed var(--line2);padding:8px 12px 12px;background:var(--tintbg)}
+.camp.open .deliv{display:block}
+.deliv-tools{display:flex;justify-content:flex-end;padding:4px 2px 8px}
+
+.dcard{border:1px solid var(--line);border-radius:9px;background:#fff;margin:7px 0;overflow:hidden}
+.dcard-h{display:flex;align-items:center;gap:11px;padding:9px 11px;cursor:pointer}
+.kind{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;border-radius:5px;padding:2px 6px;flex:none}
+.k-email{background:#3f6fb0}.k-blog{background:#7a5bb0}.k-social{background:#2f9e8f}
+.dcard-h .dname{font-weight:600;font-size:13.5px;flex:1}
+.dcard-h .utm{font-family:var(--mono);font-size:11px;color:#5b6472;background:#f0f1f3;border:1px solid #e6e7ea;border-radius:5px;padding:1px 6px}
+.dcard-h .dcaret{color:var(--mut2);font-size:11px;transition:.15s}
+.dcard.open .dcaret{transform:rotate(90deg)}
+.dbody{display:none;border-top:1px solid var(--line);padding:11px}
+.dcard.open .dbody{display:block}
+
+.chain{display:flex;gap:0;flex-wrap:wrap;align-items:stretch;margin-bottom:11px}
+.cstep{flex:1;min-width:120px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-right:8px}
+.cstep:last-child{margin-right:0}
+.cstep .cl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.cstep .cd{font-family:var(--mono);font-weight:600;font-size:13px;margin-top:2px}
+.cstep .cw{font-size:11.5px;color:var(--ink2);margin-top:1px}
+.cstep.comp{border-left:3px solid #c47614}.cstep.code{border-left:3px solid var(--adam)}.cstep.send{border-left:3px solid var(--tami)}
+
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.roles{grid-template-columns:1fr}.chain .cstep{margin-bottom:8px}}
+.rolecard{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.rolecard .rh{display:flex;align-items:center;gap:8px;padding:7px 10px;font-weight:700;font-size:12px;color:#fff}
+.rolecard.tami .rh{background:var(--tami)}.rolecard.adam .rh{background:var(--adam)}
+.rolecard .rh .role-for{font-weight:500;opacity:.85;font-size:11px}
+.rolecard .rb{padding:9px 10px}
+.kv{display:flex;gap:8px;padding:3px 0;font-size:12.5px}
+.kv .kk{color:var(--mut);min-width:104px;font-weight:600;font-size:11.5px}
+.kv .vv{color:var(--ink);word-break:break-word}
+.kv .vv.mono{font-family:var(--mono);font-size:11.5px}
+
+.lists{margin-top:11px}
+.lists .ll{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.reach{font-family:var(--mono);font-weight:600;color:var(--adam);text-transform:none;letter-spacing:0;font-size:11px}
+.listpanel{border-top:1px solid var(--line);background:#fff;max-height:210px;overflow-y:auto;padding:6px}
+.lp-g{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);padding:8px 6px 4px}
+.lp-row{display:flex;align-items:center;gap:9px;padding:5px 7px;border-radius:6px;font-size:12.5px;font-weight:500;color:var(--ink);cursor:pointer;margin:0}
+.lp-row:hover{background:var(--tintbg)}
+.lp-row input{width:auto;margin:0;flex:none}
+.lp-row span:first-of-type{flex:1}
+.lp-c{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.listbtn{justify-content:center;white-space:nowrap}
+.lchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:7px;padding:4px 9px;font-size:12px;margin:0 6px 6px 0;background:#fff}
+.lchip .cnt{font-family:var(--mono);font-size:11px;color:var(--mut);background:#f4f4f5;border-radius:4px;padding:0 5px}
+
+.note{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--ink2);background:#fbfaf6;border:1px solid #efe9d9;border-radius:8px;padding:10px 12px;margin-top:10px}
+.note b{color:var(--ink)}
+.note .i{flex:none;width:16px;height:16px;border-radius:50%;background:#c9a24b;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+
+.overlay{position:fixed;inset:0;background:rgba(24,24,27,.42);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:38px 16px;z-index:50;overflow-y:auto}
+.overlay.show{display:flex}
+.modal{background:var(--card);border-radius:14px;width:100%;max-width:620px;box-shadow:0 12px 40px rgba(0,0,0,.24);border:1px solid var(--line);animation:pop .16s ease}
+.modal.wide{max-width:720px}
+@keyframes pop{from{transform:translateY(6px) scale(.99);opacity:0}to{transform:none;opacity:1}}
+.m-h{padding:16px 18px 14px;border-bottom:1px solid var(--line)}
+.m-h .kick{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.m-h h3{margin:3px 0 2px;font-size:18px;font-weight:800;letter-spacing:-.02em}
+.m-h p{margin:0;color:var(--mut);font-size:12.5px}
+.m-b{padding:16px 18px;max-height:66vh;overflow-y:auto}
+.m-f{padding:13px 18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.m-f .hint{font-size:11.5px;color:var(--mut)}
+.field{margin-bottom:14px}.field.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:5px}
+label .opt{font-weight:500;color:var(--mut2)}
+input,select,textarea{width:100%;font-family:var(--ui);font-size:13.5px;color:var(--ink);background:#fff;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;outline:none;transition:.12s}
+input.mono,select.mono{font-family:var(--mono);font-size:12.5px}
+input:focus,select:focus,textarea:focus{border-color:#8a8a93;box-shadow:0 0 0 3px rgba(24,24,27,.06)}
+.help{font-size:11.5px;color:var(--mut);margin-top:5px}
+.inherit{display:flex;align-items:center;gap:9px;background:var(--tintbg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:12.5px;color:var(--ink2)}
+.inherit .chip{width:16px;height:16px;box-shadow:0 0 0 1px var(--line2)}
+.brandpick{display:flex;gap:7px;flex-wrap:wrap}
+.bp{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12.5px;font-weight:600}
+.bp:hover{border-color:#b7b7bf}.bp.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.bp .sw{width:13px;height:13px;border-radius:4px}
+.divlabel{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:18px 0 9px;padding-top:14px;border-top:1px solid var(--line)}
+
+.tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ttag{display:inline-flex;align-items:center;gap:6px;background:#eef1f5;border:1px solid #dfe3ea;border-radius:7px;padding:4px 9px;font-size:12px;font-weight:600;color:#41506a;font-family:var(--mono)}
+.ttag .x{cursor:pointer;color:#8a97ab}.ttag .x:hover{color:var(--gb)}
+.ttag-add{display:inline-flex;gap:6px}
+.ttag-add input{width:170px;font-size:12px;padding:5px 9px}
+
+.dlist{border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.dl-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--line);font-size:12.5px}
+.dl-item:last-child{border-bottom:0}.dl-item .nm{flex:1;font-weight:600}
+.dl-item .x{color:var(--mut2);cursor:pointer;font-size:15px}.dl-item .x:hover{color:var(--gb)}
+.addbar{padding:10px 11px;background:var(--tintbg);display:grid;grid-template-columns:88px 1fr 1fr auto;gap:8px;align-items:center}
+.addbar select,.addbar input{width:100%}
+@media(max-width:600px){.addbar{grid-template-columns:1fr 1fr}}
+.utmbox{margin-top:12px;background:#0f1115;color:#e6e7ea;border-radius:9px;padding:11px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.8;word-break:break-all}
+.utmbox .kk{color:#7fb0e6}.utmbox .amp{color:#5b6472}
+.utmbox .lbl{color:#71717a;font-size:10px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px}
+
+.jira-sum{display:flex;gap:14px;flex-wrap:wrap;background:var(--tintbg);border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:14px}
+.jira-sum .m{font-size:12px;color:var(--mut)}.jira-sum .m b{display:block;font-size:19px;color:var(--ink);font-weight:800}
+.jgroup{margin-bottom:14px}
+.jgroup .gh{font-size:12px;font-weight:700;color:var(--ink2);margin:0 0 7px;display:flex;align-items:center;gap:8px}
+.jrow{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:7px}
+.jrow .jt{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;border-radius:4px;padding:2px 6px;margin-top:2px}
+.jt-comp{background:#c47614}.jt-code{background:var(--adam)}.jt-send{background:var(--tami)}
+.jrow .jb{flex:1;min-width:0}
+.jrow .js{font-weight:600;font-size:13px}
+.jrow .jd{font-size:11.5px;color:var(--mut);margin-top:2px;font-family:var(--mono);word-break:break-word}
+.jrow .jmeta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:11px;color:var(--ink2)}
+.jrow .who{display:inline-flex;align-items:center;gap:5px;background:#f4f4f5;border-radius:99px;padding:1px 8px}
+.jrow .who .av{width:15px;height:15px;border-radius:50%;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.jrow .due{font-family:var(--mono);color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <h1>Initiatives, Campaigns &amp; Deliverables</h1>
+      <p>Plan the hierarchy, capture per-email hand-offs and role views, then export the whole task list to Jira.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="openM('initModal')"><span class="plus">+</span>New initiative</button>
+      <button class="btn primary" onclick="openM('campModal')"><span class="plus">+</span>New campaign</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="eyebrow">The three tiers → Salesforce → UTM</span></div>
+    <div class="rosetta">
+      <div class="rcol"><div class="k">Initiative</div><div class="v">Strategic umbrella</div>
+        <div class="d">Brand-agnostic. Inherits brands from its campaigns.</div>
+        <div class="tag-sf">= parent SF campaign · rollup</div></div>
+      <div class="arrow">→</div>
+      <div class="rcol"><div class="k">Campaign</div><div class="v">Delivery unit</div>
+        <div class="d">Wave · convention · single send. Brand set here.</div>
+        <div class="tag-sf">utm_campaign = SF campaign code</div></div>
+      <div class="arrow">→</div>
+      <div class="rcol"><div class="k">Deliverable</div><div class="v">The send / asset</div>
+        <div class="d">Each email: comp → code → send, with role views.</div>
+        <div class="tag-sf">utm_content = the deliverable</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tabs" id="tabs">
+      <div class="tab on" data-k="prop28"><span class="dot" style="background:var(--wenger)"></span>Prop 28 <span class="sub">campaign = wave</span></div>
+      <div class="tab" data-k="conv"><span class="dot" style="background:linear-gradient(90deg,var(--wenger) 50%,var(--gb) 50%)"></span>Conventions 2026 <span class="sub">campaign = convention</span></div>
+      <div class="tab" data-k="gbpush"><span class="dot" style="background:var(--gb)"></span>Athletic Push <span class="sub">campaign = single email</span></div>
+    </div>
+    <div class="sec-b">
+      <div class="node" id="tree"></div>
+      <div id="treenote"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="jiraModal">
+  <div class="modal wide">
+    <div class="m-h"><div class="kick">Export to Jira</div><h3 id="jiraTitle">Task list</h3>
+      <p>Each Pardot email becomes three tasks — comp, code, send — with the owner and due date. Metadata rides in the description.</p></div>
+    <div class="m-b" id="jiraBody"></div>
+    <div class="m-f"><span class="hint">Project <span class="mono">WMKT</span> · issue type Task</span>
+      <div style="display:flex;gap:10px"><button class="btn" onclick="closeM('jiraModal')">Close</button>
+      <button class="btn jira" onclick="closeM('jiraModal')"><span id="jiraCount">Create issues</span></button></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="initModal">
+  <div class="modal">
+    <div class="m-h"><div class="kick">New initiative</div><h3>Create an initiative</h3>
+      <p>The strategic umbrella. Becomes the parent Salesforce campaign — a reporting rollup only.</p></div>
+    <div class="m-b">
+      <div class="field"><label>Initiative name</label><input value="Conventions 2026"></div>
+      <div class="field row2">
+        <div><label>Owner</label><select><option>Mark Mireles</option><option>Whitney Winkels</option><option>Pete Veal</option></select></div>
+        <div><label>Type</label><select><option>Waves (recurring cadence)</option><option selected>Convention series</option><option>Standalone sends</option></select></div>
+      </div>
+      <div class="field"><label>Parent Salesforce campaign <span class="opt">rollup</span></label>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px">
+          <input class="mono" value="Conv ALL Campaigns 2026"><input class="mono" value="701Pr00000XXXXXX"></div>
+        <div class="help">Members are never added here. Campaigns roll up into it.</div></div>
+      <div class="field"><label>Salesforce tracks <span class="opt">addable — mirrors your SF middle layer</span></label>
+        <div class="tags" id="initTracks">
+          <span class="ttag">Conv Music Ed 2026 <span class="x" onclick="this.parentNode.remove()">×</span></span>
+          <span class="ttag">Conv Performing Arts 2026 <span class="x" onclick="this.parentNode.remove()">×</span></span>
+          <span class="ttag-add"><input id="initTrackInput" placeholder="Add a track…" onkeydown="if(event.key==='Enter'){addTrack();event.preventDefault()}">
+          <button class="btn sm" onclick="addTrack()">Add</button></span>
+        </div>
+        <div class="help">Each track becomes a selectable tag on campaigns — not a separate app tier.</div></div>
+      <div class="field" style="margin-bottom:0"><label>Brand</label>
+        <div class="inherit"><span class="chip" style="background:var(--wenger)"></span><span class="chip" style="background:var(--gb)"></span>
+          <span>Inherited from campaigns. Reads as <b>Wenger + GearBoss</b> once THSCA and TX MEA are added.</span></div></div>
+    </div>
+    <div class="m-f"><span class="hint">Brand is set on campaigns, never here.</span>
+      <div style="display:flex;gap:10px"><button class="btn" onclick="closeM('initModal')">Cancel</button>
+      <button class="btn primary" onclick="closeM('initModal')">Create initiative</button></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="campModal">
+  <div class="modal wide">
+    <div class="m-h"><div class="kick">New campaign</div><h3>Create a campaign</h3>
+      <p>One delivery unit. Maps to one child Salesforce campaign — its code drives <span class="mono">utm_campaign</span>.</p></div>
+    <div class="m-b">
+      <div class="field"><label>Parent initiative</label>
+        <select id="campInit" onchange="syncCode()">
+          <option value="conv" data-sf="Conv ALL Campaigns 2026">Conventions 2026</option>
+          <option value="prop28" data-sf="Prop 28 (rollup)">Prop 28 — California Initiative</option>
+          <option value="gbpush" data-sf="GB Athletic Push">GearBoss Athletic Push</option>
+        </select>
+        <div class="help">Rolls up to <span class="mono" id="parentSf">Conv ALL Campaigns 2026</span>.</div></div>
+      <div class="field"><label>Campaign name</label><input id="campName" value="Conv THSCA 2026" oninput="syncCode()"></div>
+      <div class="field"><label>Brand <span class="opt">— sets color, code prefix &amp; identity</span></label>
+        <div class="brandpick" id="brandpick">
+          <div class="bp" data-b="wenger" data-px="WEN"><span class="sw" style="background:var(--wenger)"></span>Wenger</div>
+          <div class="bp" data-b="jrc" data-px="JRC"><span class="sw" style="background:var(--jrc)"></span>JRClancy</div>
+          <div class="bp on" data-b="gb" data-px="GB"><span class="sw" style="background:var(--gb)"></span>GearBoss</div>
+          <div class="bp" data-b="ccn" data-px="CCN"><span class="sw" style="background:var(--ccn)"></span>Creative Conners</div>
+          <div class="bp" data-b="txs" data-px="TXS"><span class="sw" style="background:var(--txs)"></span>Texas Scenic</div>
+          <div class="bp" data-b="lut" data-px="LUT"><span class="sw" style="background:var(--lut)"></span>Lutefish</div>
+        </div></div>
+      <div class="field row2">
+        <div><label>Campaign type</label>
+          <select><option>Event Promotion</option><option>Lead Generation</option><option>Nurture</option><option>Brand Awareness</option><option>Sales</option></select></div>
+        <div><label>SF track <span class="opt">from the initiative</span></label>
+          <select><option>Conv Music Ed 2026</option><option>Conv Performing Arts 2026</option><option>+ add a track…</option></select></div>
+      </div>
+      <div class="field"><label>Child Salesforce campaign <span class="opt">→ utm_campaign</span></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <input class="mono" id="campCode" value="GB-2026-CONV-THSCA"><input class="mono" value="701Pr00000YYYYYY"></div></div>
+      <div class="field row2">
+        <div><label>Launch date</label><input class="mono" value="2026-07-19"></div>
+        <div><label>Comp-review due</label><input class="mono" value="2026-07-10"></div>
+      </div>
+
+      <div class="divlabel">Deliverables &amp; audience lists</div>
+      <div class="dlist">
+        <div id="delivList">
+          <div class="dl-item"><span class="kind k-email">Email</span><span class="nm">Pre-show — "See GearBoss at booth"</span><span class="mono" style="color:var(--mut)">TX Athletics · 1,939</span><span class="x" onclick="this.parentNode.remove()">×</span></div>
+          <div class="dl-item"><span class="kind k-email">Email</span><span class="nm">Day-of booth reminder</span><span class="mono" style="color:var(--mut)">TX Athletics · 1,939</span><span class="x" onclick="this.parentNode.remove()">×</span></div>
+          <div class="dl-item"><span class="kind k-social">Social</span><span class="nm">LinkedIn — booth teaser</span><span class="mono" style="color:var(--mut)">organic</span><span class="x" onclick="this.parentNode.remove()">×</span></div>
+        </div>
+        <div class="addbar">
+          <select id="ndKind"><option value="k-email">Email</option><option value="k-blog">Blog</option><option value="k-social">Social</option></select>
+          <input id="ndName" placeholder="Deliverable name">
+          <button type="button" class="btn sm listbtn" id="ndListBtn" onclick="toggleListPanel()">Lists (0) ▾</button>
+          <button class="btn sm" onclick="addDel()"><span class="plus">+</span>Add</button>
+        </div>
+        <div id="ndListPanel" class="listpanel" hidden></div>
+      </div>
+      <div class="help" style="margin-top:8px">Emails can target <b>more than one list</b> — pick several and the combined reach is summed. Prop 28 waves fan out to <b>three segment emails</b>, each with its own segment SF ID and <span class="mono">utm_content=wave&#8202;N-[seg]</span>.</div>
+
+      <div class="utmbox"><span class="lbl">Auto-assembled UTM · preview</span>
+        <span class="amp">?</span><span class="kk">utm_source</span>=pardot<span class="amp">&amp;</span><span class="kk">utm_medium</span>=email<span class="amp">&amp;</span><span class="kk">utm_campaign</span>=<span id="uCamp">GB-2026-CONV-THSCA</span><span class="amp">&amp;</span><span class="kk">utm_content</span>=thsca-pre</div>
+    </div>
+    <div class="m-f"><span class="hint">Deliverables become this campaign's SF members.</span>
+      <div style="display:flex;gap:10px"><button class="btn" onclick="closeM('campModal')">Cancel</button>
+      <button class="btn primary" onclick="closeM('campModal')">Create campaign</button></div></div>
+  </div>
+</div>
+
+<script>
+const BRAND={wenger:'var(--wenger)',jrc:'var(--jrc)',gb:'var(--gb)',ccn:'var(--ccn)',txs:'var(--txs)',lut:'var(--lut)'};
+const LISTS={
+ National:[["Creative Conners List_2026",6724],["AIA Conference on Architecture & Design 2025",9414],["Architect List_5-2024",30726],["College-Univ Presidents/Deans/Decision Makers_8-2025",5461],["Rental - Event List_2-2026",2414],["Hospitality List_5-2024",960],["Worship List_4-2025",1878],["Elementary_Music Teachers_8-2025",36548],["Middle School_Music Teachers_8-2025",12226],["Secondary Music_Teachers_8-2025",18623],["K-12_Music Teachers_6-2026",24742],["K-12_School Principals_8-2025",80194],["K-12_District Superintendents-Purchasing_8-2025",20060],["K-12_Building-Grounds Directors_8-2025",9630],["K-12_Fine Arts Directors & Chairperson_8-2025",3421],["K-12_Drama Teachers_8-2025",11956],["K-12_Dance & Fine Arts Teachers_8-2025",27885],["K-12_ALL Athletic List_Coach-Director-Trainers_6-2026",125743],["K-12_Football Coach-Director-Trainers_8-2025",57592],["K-12_Football Coach-Director-Trainers_ExcludingTX",47627]],
+ California:[["CA List_6-12 Arts Educators_2026",8093],["CA List_K-5 Arts Educators_2026",5327],["CA List_K-12 School Leadership_Pur_2026",16320],["CA List_K-12 Theatre Contacts_2026",2083]],
+ Texas:[["TX List_K-12 Athletics-Coaches-Directors-Trainer_6-2026",1939],["TX List_K-12 School Principals_6-2026",6982],["TX List_K-12 District Superintendents-Purchasing_8-2025",1596]]
+};
+const fmt=n=>n.toLocaleString('en-US');
+const AV={"Chris Klett":["#7a5bb0","CK"],"Adam Bengtson":["#3f6fb0","AB"],"Tami":["#0f7a6e","T"],"Mark":["#16305c","M"]};
+
+const DATA={
+ prop28:{name:"Prop 28 — California Initiative",brands:["wenger"],owner:"Mark Mireles",
+  sfParent:"Prop 28 rollup · 701Pr00000im9XjIAI",prog:{done:2,total:4},
+  note:{t:"One campaign per wave.",b:"Wave 7 is one campaign; its three segment emails each carry their own child SF ID and list. The wave changes <b>utm_content</b> (<span class='mono'>wave7-elm/-sec/-pur</span>)."},
+  campaigns:[
+   {name:"Wave 5",brand:"wenger",type:"Nurture",sf:"P28-W5",launch:"Jun 17",comp:"Jun 12",status:"sent"},
+   {name:"Wave 6",brand:"wenger",type:"Nurture",sf:"P28-W6",launch:"Jul 1",comp:"Jun 26",status:"sent"},
+   {name:"Wave 7",brand:"wenger",type:"Nurture",sf:"P28-W7",launch:"Jul 15",comp:"Jul 10",status:"prod",open:true,
+    deliv:[
+     {k:"email",n:"Elementary send · TK–5",code:"P28-EML-EL",utm:"wave7-elm",open:true,
+      dates:{comp:["Jul 10","Chris Klett"],code:["Jul 13","Adam Bengtson"],send:["Jul 15","Tami"]},
+      tami:{sf:"Prop 28 — Email Outreach │ Elementary",deliver:"Wed Jul 15 · 10:00 AM PT",subj:"Summer is the quiet window — here's how to use it",seg:"Elementary — TK–5 teachers & arts coordinators"},
+      adam:{utm:"utm_source=pardot · utm_medium=email · utm_campaign=P28-EML-EL · utm_content=wave7-elm",id:"701Pr00000k0R0vIAE",lp:"P28-WEB · 701Pr00000iloWLIAY"},
+      lists:[["CA List_K-5 Arts Educators_2026",5327]]},
+     {k:"email",n:"Secondary send · 6–12",code:"P28-EML-SE",utm:"wave7-sec",
+      dates:{comp:["Jul 10","Chris Klett"],code:["Jul 13","Adam Bengtson"],send:["Jul 15","Tami"]},
+      tami:{sf:"Prop 28 — Email Outreach │ Secondary",deliver:"Wed Jul 15 · 10:10 AM PT",subj:"Order now, rehearse on it in August",seg:"Secondary — 6–12 music directors & fine-arts heads"},
+      adam:{utm:"utm_source=pardot · utm_medium=email · utm_campaign=P28-EML-SE · utm_content=wave7-sec",id:"701Pr00000k0DR2IAM",lp:"P28-WEB · 701Pr00000iloWLIAY"},
+      lists:[["CA List_6-12 Arts Educators_2026",8093],["CA List_K-12 Theatre Contacts_2026",2083]]},
+     {k:"email",n:"Purchasing send · CBO/procurement",code:"P28-EML-PU",utm:"wave7-pur",
+      dates:{comp:["Jul 10","Chris Klett"],code:["Jul 13","Adam Bengtson"],send:["Jul 15","Tami"]},
+      tami:{sf:"Prop 28 — Email Outreach │ Purchasing",deliver:"Wed Jul 15 · 10:20 AM PT",subj:"Get arts equipment received and installed before day one",seg:"Purchasing — district purchasers, CBO & procurement"},
+      adam:{utm:"utm_source=pardot · utm_medium=email · utm_campaign=P28-EML-PU · utm_content=wave7-pur",id:"701Pr00000k05mpIAA",lp:"P28-WEB · 701Pr00000iloWLIAY"},
+      lists:[["CA List_K-12 School Leadership_Pur_2026",16320]]}
+    ]},
+   {name:"Wave 8",brand:"wenger",type:"Nurture",sf:"P28-W8",launch:"Jul 29",comp:"Jul 24",status:"plan"}
+  ]},
+ conv:{name:"Conventions 2026",brands:["wenger","gb","ccn"],owner:"Mark Mireles",
+  sfParent:"Conv ALL Campaigns 2026 · rollup",prog:{done:1,total:6},
+  note:{t:"One campaign per convention.",b:"SF tracks (<span class='mono'>Music Ed</span>/<span class='mono'>Performing Arts</span>) ride along as tags. THSCA sits under the Music Ed tree but is a GearBoss show — brand-on-campaign handles it."},
+  campaigns:[
+   {name:"Conv NAMM 2026",brand:"wenger",type:"Event Promotion",sf:"WEN-CONV-NAMM · Music Ed",launch:"Jan 22",comp:"Jan 12",status:"sent"},
+   {name:"Conv THSCA 2026",brand:"gb",type:"Event Promotion",sf:"GB-CONV-THSCA · Athletics",launch:"Jul 19",comp:"Jul 10",status:"prod",open:true,
+    deliv:[
+     {k:"email",n:"Pre-show invite",code:"GB-CONV-THSCA",utm:"thsca-pre",open:true,
+      dates:{comp:["Jul 10","Chris Klett"],code:["Jul 14","Adam Bengtson"],send:["Jul 16","Tami"]},
+      tami:{sf:"Conv THSCA 2026 — Pre-show",deliver:"Thu Jul 16 · 9:00 AM CT",subj:"See GearBoss at THSCA — booth 1423",seg:"TX athletics — coaches, ADs, trainers"},
+      adam:{utm:"utm_source=pardot · utm_medium=email · utm_campaign=GB-CONV-THSCA · utm_content=thsca-pre",id:"701Pr00000THSCA1",lp:"—"},
+      lists:[["TX List_K-12 Athletics-Coaches-Directors-Trainer_6-2026",1939],["TX List_K-12 School Principals_6-2026",6982]]},
+     {k:"email",n:"Day-of booth reminder",code:"GB-CONV-THSCA",utm:"thsca-booth",
+      dates:{comp:["Jul 10","Chris Klett"],code:["Jul 14","Adam Bengtson"],send:["Jul 19","Tami"]},
+      tami:{sf:"Conv THSCA 2026 — Day-of",deliver:"Sun Jul 19 · 7:30 AM CT",subj:"We're on the floor — come by booth 1423",seg:"TX athletics — coaches, ADs, trainers"},
+      adam:{utm:"utm_source=pardot · utm_medium=email · utm_campaign=GB-CONV-THSCA · utm_content=thsca-booth",id:"701Pr00000THSCA1",lp:"—"},
+      lists:[["TX List_K-12 Athletics-Coaches-Directors-Trainer_6-2026",1939]]}
+    ]},
+   {name:"Conv TX MEA 2026 (TMEA)",brand:"wenger",type:"Event Promotion",sf:"WEN-CONV-TXMEA · Music Ed",launch:"Feb 11",comp:"Feb 2",status:"sent"},
+   {name:"Conv USITT 2026",brand:"ccn",type:"Event Promotion",sf:"CCN-CONV-USITT · Perf Arts",launch:"Mar 18",comp:"Mar 9",status:"sent"},
+   {name:"Conv LDI 2026",brand:"ccn",type:"Event Promotion",sf:"CCN-CONV-LDI · Perf Arts",launch:"Nov 20",comp:"Nov 10",status:"plan"},
+   {name:"Conv ISE 2026",brand:"txs",type:"Event Promotion",sf:"TXS-CONV-ISE · Perf Arts",launch:"Feb 3",comp:"Jan 24",status:"sent"}
+  ]},
+ gbpush:{name:"GearBoss Athletic Push",brands:["gb"],owner:"Pete Veal",
+  sfParent:"GB Athletic Push · rollup",prog:{done:1,total:3},
+  note:{t:"One campaign per email.",b:"Simplest granularity — each send is its own campaign with one deliverable. Clean 1-email-to-1-SF-campaign line."},
+  campaigns:[
+   {name:"Storage-trends newsletter",brand:"gb",type:"Nurture",sf:"GB-2026-AD-NL",launch:"Feb 2",comp:"Jan 26",status:"sent",open:true,
+    deliv:[{k:"email",n:"AD newsletter — 2026 storage trends",code:"GB-2026-AD-NL",utm:"ad-nl-feb",open:true,
+      dates:{comp:["Jan 26","Chris Klett"],code:["Jan 29","Adam Bengtson"],send:["Feb 2","Tami"]},
+      tami:{sf:"GB 2026 AD Newsletter — Feb",deliver:"Mon Feb 2 · 8:00 AM CT",subj:"5 storage trends shaping 2026 athletic facilities",seg:"Athletic directors, nationwide"},
+      adam:{utm:"utm_source=pardot · utm_medium=email · utm_campaign=GB-2026-AD-NL · utm_content=ad-nl-feb",id:"7011U000003CdEf1",lp:"—"},
+      lists:[["K-12_ALL Athletic List_Coach-Director-Trainers_6-2026",125743]]}]},
+   {name:"Summer renovation LinkedIn",brand:"gb",type:"Lead Generation",sf:"GB-2026-LI-SUMMER",launch:"Jun 22",comp:"Jun 12",status:"prod"},
+   {name:"Fall trade-pub placement",brand:"gb",type:"Sales",sf:"GB-2026-AD-PUB",launch:"Sep 15",comp:"Sep 5",status:"plan"}
+  ]}
+};
+const ST={sent:["st-sent","Sent"],prod:["st-prod","In production"],plan:["st-plan","Planned"]};
+
+function renderTree(k){
+ const d=DATA[k];
+ const chips=d.brands.map(b=>`<span class="chip" style="background:${BRAND[b]}"></span>`).join('');
+ const pct=Math.round(d.prog.done/d.prog.total*100),accent=BRAND[d.brands[0]];
+ const camps=d.campaigns.map((c,ci)=>{
+   const col=BRAND[c.brand],st=ST[c.status];
+   let deliv='';
+   if(c.deliv){
+     deliv=`<div class="deliv"><div class="deliv-tools"><button class="btn jira sm" onclick="event.stopPropagation();openJira('${k}',${ci})">Export to Jira</button></div>${c.deliv.map(renderDeliv).join('')}</div>`;
+   }
+   return `<div class="camp ${c.open?'open':''}"><div class="camp-h" onclick="this.parentNode.classList.toggle('open')">
+       <span class="cdot" style="background:${col}"></span><span class="cname">${c.name}</span>
+       <span class="ctype">${c.type}</span><span class="grow"></span>
+       <span class="sfpill">${c.sf}</span>
+       <span class="dates"><span class="launch" style="color:${col}">${c.launch}</span><span class="comp">${c.comp}</span></span>
+       <span class="status ${st[0]}">${st[1]}</span>
+       ${c.deliv?'<span class="caret">▸</span>':'<span style="width:12px"></span>'}
+     </div>${deliv}</div>`;
+ }).join('');
+ document.getElementById('tree').innerHTML=`
+   <div class="init"><div class="brandchips">${chips}</div>
+     <div><div class="title">${d.name}</div><div class="meta mono">${d.sfParent} · ${d.owner}</div></div>
+     <div class="grow"></div>
+     <div class="prog"><div class="bar"><i style="width:${pct}%;background:${accent}"></i></div>
+       <span class="lab">${d.prog.done}/${d.prog.total} launched</span></div></div>
+   <div class="campaigns">${camps}</div>`;
+ document.getElementById('treenote').innerHTML=`<div class="note"><span class="i">i</span><span><b>${d.note.t}</b> ${d.note.b}</span></div>`;
+}
+
+function renderDeliv(dl){
+ if(dl.k!=='email'){
+   return `<div class="dcard"><div class="dcard-h" onclick="this.parentNode.classList.toggle('open')">
+     <span class="kind k-${dl.k}">${dl.k}</span><span class="dname">${dl.n}</span>
+     <span class="utm">utm_content=${dl.utm}</span></div></div>`;
+ }
+ const D=dl.dates;
+ const chain=`<div class="chain">
+   <div class="cstep comp"><div class="cl">Comp / creative due</div><div class="cd">${D.comp[0]}</div><div class="cw">${D.comp[1]}</div></div>
+   <div class="cstep code"><div class="cl">Coding due</div><div class="cd">${D.code[0]}</div><div class="cw">${D.code[1]}</div></div>
+   <div class="cstep send"><div class="cl">Send date</div><div class="cd">${D.send[0]}</div><div class="cw">${D.send[1]}</div></div></div>`;
+ const t=dl.tami,a=dl.adam;
+ const roles=`<div class="roles">
+   <div class="rolecard tami"><div class="rh">Information for Email Send</div><div class="rb">
+     <div class="kv"><span class="kk">SF campaign</span><span class="vv">${t.sf}</span></div>
+     <div class="kv"><span class="kk">Deliver date</span><span class="vv mono">${t.deliver}</span></div>
+     <div class="kv"><span class="kk">Email subject</span><span class="vv">${t.subj}</span></div>
+     <div class="kv"><span class="kk">Segment</span><span class="vv">${t.seg}</span></div></div></div>
+   <div class="rolecard adam"><div class="rh">Information for Coding</div><div class="rb">
+     <div class="kv"><span class="kk">Campaign ID</span><span class="vv mono">${a.id}</span></div>
+     <div class="kv"><span class="kk">UTM string</span><span class="vv mono">${a.utm}</span></div>
+     <div class="kv"><span class="kk">Landing page</span><span class="vv mono">${a.lp}</span></div></div></div></div>`;
+ const multi=dl.lists.length>1;
+ const total=dl.lists.reduce((s,l)=>s+l[1],0);
+ const reach=multi?` <span class="reach">${fmt(total)} combined</span>`:'';
+ const lists=`<div class="lists"><div class="ll">Audience list${multi?'s':''} · Pardot${reach}</div>${
+   dl.lists.map(l=>`<span class="lchip">${l[0]} <span class="cnt">${fmt(l[1])}</span></span>`).join('')}</div>`;
+ return `<div class="dcard ${dl.open?'open':''}">
+   <div class="dcard-h" onclick="this.parentNode.classList.toggle('open')">
+     <span class="kind k-email">Email</span><span class="dname">${dl.n}</span>
+     <span class="utm">${dl.code} · ${dl.utm}</span><span class="dcaret">▸</span></div>
+   <div class="dbody">${chain}${roles}${lists}</div></div>`;
+}
+
+function openJira(k,ci){
+ const d=DATA[k],c=d.campaigns[ci];
+ const emails=(c.deliv||[]).filter(x=>x.k==='email');
+ let groups='',n=0;
+ emails.forEach(dl=>{
+   const rows=[
+     ['comp','Design comps',dl.dates.comp,`Segment: ${dl.tami.seg} · Lists: ${dl.lists.map(l=>l[0]+' ('+fmt(l[1])+')').join(' + ')}`],
+     ['code','Build, UTM & landing page',dl.dates.code,`${dl.adam.utm} · Campaign ID ${dl.adam.id}`],
+     ['send','Pardot send',dl.dates.send,`SF: ${dl.tami.sf} · Subject: "${dl.tami.subj}" · Deliver ${dl.tami.deliver}`]
+   ];
+   n+=rows.length;
+   groups+=`<div class="jgroup"><div class="gh"><span class="kind k-email">Email</span>${dl.n}</div>`+
+     rows.map(r=>{const who=r[2][1],av=AV[who]||['#71717a','?'];
+       return `<div class="jrow"><span class="jt jt-${r[0]}">${r[0]}</span><div class="jb">
+         <div class="js">[${c.name}] ${dl.n} — ${r[1]}</div>
+         <div class="jd">${r[3]}</div>
+         <div class="jmeta"><span class="who"><span class="av" style="background:${av[0]}">${av[1]}</span>${who}</span>
+         <span class="due">Due ${r[2][0]}</span></div></div></div>`;
+     }).join('')+`</div>`;
+ });
+ document.getElementById('jiraTitle').textContent=`${c.name} → Jira`;
+ document.getElementById('jiraBody').innerHTML=`
+   <div class="jira-sum"><div class="m"><b>${n}</b> tasks</div><div class="m"><b>${emails.length}</b> emails × comp·code·send</div>
+   <div class="m"><b>3</b> assignees<br><span style="font-size:11px">Chris · Adam · Tami</span></div></div>${groups}`;
+ document.getElementById('jiraCount').textContent=`Create ${n} issues`;
+ openM('jiraModal');
+}
+
+function openM(id){document.getElementById(id).classList.add('show')}
+function closeM(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show')}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show'))});
+document.getElementById('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');renderTree(t.dataset.k)});
+
+function addTrack(){const i=document.getElementById('initTrackInput'),v=i.value.trim();if(!v)return;
+ const s=document.createElement('span');s.className='ttag';s.innerHTML=`${v} <span class="x" onclick="this.parentNode.remove()">×</span>`;
+ i.closest('.tags').insertBefore(s,i.parentNode);i.value=''}
+
+let curPx="GB";
+document.getElementById('brandpick').addEventListener('click',e=>{const b=e.target.closest('.bp');if(!b)return;
+ document.querySelectorAll('#brandpick .bp').forEach(x=>x.classList.remove('on'));b.classList.add('on');curPx=b.dataset.px;syncCode()});
+function slug(s){return s.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase()}
+function syncCode(){const sel=document.getElementById('campInit');
+ document.getElementById('parentSf').textContent=sel.options[sel.selectedIndex].dataset.sf;
+ const nm=document.getElementById('campName').value||'CAMPAIGN';
+ const code=`${curPx}-2026-${slug(nm).slice(0,22)}`;
+ document.getElementById('campCode').value=code;document.getElementById('uCamp').textContent=code}
+function buildListOptions(){const p=document.getElementById('ndListPanel');let h='';
+ for(const g in LISTS){h+=`<div class="lp-g">${g}</div>`+LISTS[g].map(l=>
+   `<label class="lp-row"><input type="checkbox" value="${l[0]}|${l[1]}" onchange="updateListBtn()"><span>${l[0]}</span><span class="lp-c">${fmt(l[1])}</span></label>`).join('')}
+ p.innerHTML=h}
+function toggleListPanel(){const p=document.getElementById('ndListPanel');p.hidden=!p.hidden}
+function selectedLists(){return [...document.querySelectorAll('#ndListPanel input:checked')].map(c=>c.value)}
+function updateListBtn(){document.getElementById('ndListBtn').textContent=`Lists (${selectedLists().length}) ▾`}
+function addDel(){const k=document.getElementById('ndKind').value,n=document.getElementById('ndName').value.trim()||'Untitled deliverable';
+ const sel=selectedLists();let lab;
+ if(!sel.length)lab=(k==='k-social'?'organic':'—');
+ else if(sel.length===1)lab=sel[0].split('|')[0].slice(0,24)+' · '+fmt(+sel[0].split('|')[1]);
+ else{const total=sel.reduce((s,v)=>s+ +v.split('|')[1],0);lab=`${sel.length} lists · ${fmt(total)}`}
+ const el=document.createElement('div');el.className='dl-item';
+ el.innerHTML=`<span class="kind ${k}">${k.replace('k-','')}</span><span class="nm">${n}</span><span class="mono" style="color:var(--mut)">${lab}</span><span class="x" onclick="this.parentNode.remove()">×</span>`;
+ document.getElementById('delivList').appendChild(el);
+ document.querySelectorAll('#ndListPanel input:checked').forEach(c=>c.checked=false);
+ updateListBtn();document.getElementById('ndListPanel').hidden=true;document.getElementById('ndName').value=''}
+
+buildListOptions();renderTree('prop28');syncCode();
+</script>
+</body>
+</html>
