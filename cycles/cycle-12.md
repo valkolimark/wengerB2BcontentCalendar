@@ -43,12 +43,14 @@ detail drawer / campaign modal.
 1. **Schema — `0007_deliverables.sql`:**
    - `deliverables` (`id`, `campaign_id` FK **ON DELETE CASCADE**, `kind` check
      `email|blog|social`, `name`, `sf_code`, `sf_id`, `sf_name`, `utm_content`,
+     `utm_source` (default `pardot`, check `pardot|salesforce`),
      `email_subject`, `segment`, `landing_page`, `deliver_at timestamptz`,
      `sort` int, `created_at`). Index on `campaign_id`.
    - `deliverable_tasks` (`id`, `deliverable_id` FK CASCADE, `kind` check
      `comp|code|send`, `due date`, `owner text`) — the hand-off chain.
    - `lists` (`id`, `name unique`, `reach int`, `region text` —
-     National/California/Texas) seeded from the mockup's `LISTS` dictionary;
+     National/California/Texas) **seeded** from the mockup's `LISTS` dictionary
+     **and staff-editable** (name/reach corrections, add/remove — see UI/Actions);
      `deliverable_lists` (`deliverable_id`, `list_id`, pk both) join.
    - **Data migration:** move `campaigns.utm_content` → a per-campaign
      single deliverable where sensible, then **drop `campaigns.utm_content`**.
@@ -61,11 +63,13 @@ detail drawer / campaign modal.
 
 2. **lib** — `types.ts` gains `Deliverable`, `DeliverableTask`, `List`;
    `queries.ts` `getHomeData` joins deliverables (+ tasks + lists) under
-   campaigns; `utm.ts` gains a deliverable-aware assemble (see decision D2);
+   campaigns; `utm.ts` gains a deliverable-aware assemble (per D2: source
+   `pardot|salesforce`, medium `email`, campaign = deliverable SF code);
    a `deliverables.ts` helper for reach summation + chain ordering.
 
 3. **Actions** — `create/update/deleteDeliverable`, task upserts, list
-   attach/detach; campaign create/update no longer writes `utm_content`.
+   attach/detach, **`create/update/deleteList`** (staff, for reach/name
+   corrections); campaign create/update no longer writes `utm_content`.
    Importer extended: deliverables keyed by SF code, lists by name, idempotent.
 
 4. **UI** — expandable **campaign → deliverable** tree in the detail drawer
@@ -75,9 +79,9 @@ detail drawer / campaign modal.
    "Deliverables & audience lists" sub-form (kind, name, multi-list picker with
    live reach, live UTM preview).
 
-5. **Calendar** — month/week/day surface deliverable **sends** (and optionally
-   comp/code due) alongside campaign launch/comp. Decide overlay vs. replace
-   (D3).
+5. **Calendar** — month/week/day surface deliverable **sends** (from
+   `deliver_at`) **alongside** the existing campaign launch/comp markers (augment,
+   not replace).
 
 6. **Export — Jira** — per email deliverable emit **comp / code / send** tasks
    (owner + due + metadata in the description), mirroring the mockup's export
@@ -86,21 +90,19 @@ detail drawer / campaign modal.
 7. **Docs** — CLAUDE.md, AGENTS.md, README, CHANGELOG updated to three tiers;
    `v1.5.0`.
 
-## Open decisions (lock with operator before coding)
+## Locked decisions (operator-confirmed)
 
-- **D1 — SF layering.** Confirm: deliverable = SF **member** with its own code
-  (`P28-EML-EL`) + id (`701Pr00000k0R0vIAE`); campaign `sf_code` (`P28-W7`) is
-  the wave grouping. `utm_campaign` derives from the **deliverable** SF code.
-- **D2 — UTM source/medium.** The mockup shows **`utm_source=pardot`,
-  `utm_medium=email`** for email deliverables. This **overrides** the Cycle 9
-  rule ("any SF identity → `utm_source=salesforce`"). Proposed: email
-  deliverables → `pardot`/`email` (Pardot is the sending platform); non-email or
-  no-SF fall back to the existing derivation. Needs sign-off — it changes an
-  established rule.
-- **D3 — Calendar.** Do deliverable sends **replace** or **augment** the
-  campaign launch/comp markers on the grid?
-- **D4 — Lists as data vs. vocab.** Seed `lists` from the mockup dictionary now,
-  or make it staff-editable this cycle?
+- **D1 — SF layering / `utm_campaign`.** `utm_campaign` = the **deliverable's SF
+  code** (`P28-EML-EL`); the campaign `sf_code` (`P28-W7`) is the wave grouping.
+- **D2 — UTM source/medium.** `utm_medium` = **`email`** for email deliverables.
+  `utm_source` is a **stored, editable** deliverable field, **default `pardot`**,
+  allowed **`pardot` or `salesforce`** (either is acceptable). This **supersedes
+  the Cycle 9 "any SF identity → `salesforce`" rule** for deliverable-level UTMs
+  — update `utm.ts` accordingly and note it in README/CLAUDE.md.
+- **D3 — Calendar.** Deliverable **sends show on the calendar** (from
+  `deliver_at`), **alongside** — not replacing — campaign launch/comp markers.
+- **D4 — Lists.** **Seed** the audience lists from the mockup dictionary **and**
+  make them **staff-editable** for corrections (name/reach; add/remove).
 
 ## Verification (planned)
 
@@ -108,8 +110,11 @@ detail drawer / campaign modal.
 - Migration transactional; `deliverables`/tasks/lists FKs cascade; re-model
   yields **1** `P28-W7` campaign + **3** deliverables (re-run idempotent).
 - A Wave 7 email deliverable renders chain + both role cards + its list with the
-  right combined reach; UTM assembles to `…utm_campaign=P28-EML-EL&utm_content=wave7-elm`
-  with the D2-agreed source/medium.
+  right combined reach; UTM assembles to
+  `?utm_source=pardot&utm_medium=email&utm_campaign=P28-EML-EL&utm_content=wave7-elm`
+  (source editable to `salesforce`).
+- A deliverable's `deliver_at` shows as a send marker on the July 2026 grid; a
+  staff edit to a list's reach updates the deliverable's combined-reach total.
 - Jira export for Wave 7 → 3 emails × (comp/code/send) = 9 tasks, owners Chris /
   Adam / Tami.
 - RLS unchanged for financials; new tables read=authed / write=staff.
