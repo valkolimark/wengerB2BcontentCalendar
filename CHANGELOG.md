@@ -9,6 +9,10 @@ a cycle-based plan; see [`cycles/`](cycles/).
   and `events` so it can be remade. `brands` and `initiatives` kept. Backup written
   under `backups/`; rerunnable guarded script at `scripts/reset-calendar.mjs`. No
   schema, RLS, or behavior changes.
+- Seeded Prop 28 "Wave 7" — three Wenger campaigns (Elementary / Secondary /
+  Purchasing) under the Prop 28 initiative, with Jul 15 launches + Jul 10
+  comp-review markers. Idempotent (upsert on SF code) via
+  `scripts/seed-prop28-wave7.mjs`. No schema/RLS/behavior changes.
 
 ## [1.4.0] — Cycle 11 — 2026-06-16 — AI assistant (read-only)
 
