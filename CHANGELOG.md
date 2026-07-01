@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## Maintenance — 2026-07-01
+
+- Reset calendar data (`campaigns_only`): cleared `campaigns`, `campaign_financials`,
+  and `events` so it can be remade. `brands` and `initiatives` kept. Backup written
+  under `backups/`; rerunnable guarded script at `scripts/reset-calendar.mjs`. No
+  schema, RLS, or behavior changes.
+
 ## [1.4.0] — Cycle 11 — 2026-06-16 — AI assistant (read-only)
 
 A conversational, read-only assistant over the live tracker data. An **Ask**
