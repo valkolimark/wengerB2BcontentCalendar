@@ -3,7 +3,7 @@
 // export modal and matching how the app's other exports work.
 import type { DeliverableWithMeta } from "./types";
 import { assembleDeliverableUtm } from "./utm";
-import { taskOf, reachOf, fmtReach } from "./deliverables";
+import { taskOf, reachOf, fmtReach, fmtDeliver } from "./deliverables";
 
 export type JiraTask = {
   deliverable: string;
@@ -43,7 +43,7 @@ export function jiraTasks(
       send: [
         d.sf_name && `SF: ${d.sf_name}`,
         d.email_subject && `Subject: "${d.email_subject}"`,
-        d.deliver_at && `Deliver ${d.deliver_at.replace("T", " ").slice(0, 16)}`,
+        d.deliver_at && `Deliver ${fmtDeliver(d.deliver_at)}`,
         reach && `Reach ${fmtReach(reach)}`,
       ]
         .filter(Boolean)

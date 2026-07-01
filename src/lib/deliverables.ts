@@ -59,3 +59,25 @@ export const sendDateOf = (d: DeliverableWithMeta): string | null => {
 
 /** Thousands-formatted integer (e.g. 16,320). */
 export const fmtReach = (n: number): string => n.toLocaleString("en-US");
+
+/**
+ * A deliver_at timestamp rendered in Pacific time (these are Pardot sends for
+ * US/CA campaigns; the brief specifies PT). e.g. "Wed, Jul 15, 10:00 AM PT".
+ */
+export const fmtDeliver = (iso: string): string => {
+  try {
+    return (
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(new Date(iso)) + " PT"
+    );
+  } catch {
+    return iso.replace("T", " ").slice(0, 16);
+  }
+};

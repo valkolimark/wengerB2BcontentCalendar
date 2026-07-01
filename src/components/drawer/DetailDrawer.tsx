@@ -38,6 +38,7 @@ import { assembleDeliverableUtm } from "@/lib/utm";
 import {
   KIND_LABEL,
   TASK_LABEL,
+  fmtDeliver,
   fmtReach,
   orderedTasks,
   reachOf,
@@ -502,9 +503,7 @@ function DeliverableCard({
             {(d.email_subject || d.segment || d.sf_name || d.deliver_at) && (
               <RoleCard icon={<Mail size={12} />} title="Email send" tint="#0f7a6e">
                 {d.sf_name && <RoleKV k="SF campaign" v={d.sf_name} />}
-                {d.deliver_at && (
-                  <RoleKV k="Deliver" v={d.deliver_at.replace("T", " ").slice(0, 16)} mono />
-                )}
+                {d.deliver_at && <RoleKV k="Deliver" v={fmtDeliver(d.deliver_at)} mono />}
                 {d.email_subject && <RoleKV k="Subject" v={d.email_subject} />}
                 {d.segment && <RoleKV k="Segment" v={d.segment} />}
               </RoleCard>
