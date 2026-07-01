@@ -14,12 +14,15 @@ which is the UX source of truth.
 
 ## Project status
 
-**v1.3.0 — Cycle 10: Salesforce reporting parents.** Campaigns can reference a
-Salesforce **rollup parent** (a small self-referential lookup); a **Salesforce
-import CSV** export walks the deduped parent chain so SF can reconstruct the
-tree. The app stays two-level (Initiative → Campaign) — Salesforce does the
-rollup. Built on **v1.2.0** (SF Campaign ID/Name + `utm_source=salesforce`
-rule), **v1.1.0** (theming), and **v1.0.0** (production-ready).
+**v1.5.0 — Cycle 12: Deliverable tier.** The app is now three-level —
+**Initiative → Campaign → Deliverable.** A campaign fans out to **deliverables**
+(email/blog/social) — the actual sends — each with its own SF member code
+(→ `utm_campaign`), `utm_content`, editable `utm_source` (`pardot`|`salesforce`),
+a **comp→code→send** hand-off chain, **Email-send**/**Coding** role views, and
+one-or-more **audience lists** (summed reach). Deliverable **sends** show on the
+calendar, and each campaign's emails **export to Jira** as comp/code/send tasks.
+Built on **v1.4.0** (read-only AI assistant), **v1.3.0** (Salesforce rollup
+parents), **v1.2.0** (SF Campaign ID/Name), **v1.1.0** (theming), and **v1.0.0**.
 See [Theming & branding](#theming--branding), [Deployment](#deployment-vercel),
 the [Go-live checklist](#go-live-checklist),
 [Authentication & roles](#authentication--roles), [Spreadsheet

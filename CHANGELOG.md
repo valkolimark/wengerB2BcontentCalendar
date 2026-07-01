@@ -3,6 +3,40 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.5.0] — Cycle 12 — 2026-07-01 — Deliverable tier
+
+The third tier the app always deferred: **Initiative → Campaign → Deliverable.**
+A campaign fans out to one or more **deliverables** (email/blog/social) — the
+actual sends. Design source: `reference/wenger-initiative-campaign-mockup.html`.
+
+### Added
+
+- **Schema** (`0007_deliverables.sql`): `deliverables`, `deliverable_tasks`
+  (comp→code→send chain), `lists` (27 seeded, staff-editable audience lists with
+  stored reach), `deliverable_lists` join. RLS read = authed, write = staff.
+- **Deliverable view** in the campaign drawer — expandable cards with the
+  comp→code→send chain, **Email-send** / **Coding** role cards, audience-list
+  chips with combined reach, and per-deliverable UTM copy. `DeliverableModal`
+  for create/edit (kind, SF member code/id, `utm_content`, editable
+  `utm_source`, subject, segment, landing page, PT send time, chain, lists).
+- **Calendar** now shows deliverable **sends** (solid brand marker) alongside
+  campaign launch/comp.
+- **Jira export** (`lib/jira.ts` + `JiraExportModal`): each email deliverable →
+  comp/code/send tasks with owner, due, and metadata; preview + CSV.
+- **UTM (deliverable):** `utm_campaign` = deliverable SF member code,
+  `utm_medium` from kind, `utm_source` stored/editable (`pardot`|`salesforce`,
+  default pardot) — supersedes the campaign-level "SF identity → salesforce" rule
+  for deliverables.
+
+### Changed
+
+- `getHomeData` joins deliverables (+ tasks + lists) under campaigns and loads
+  the lists vocab. `CampaignWithEvents` gains `deliverables[]`.
+- **Wave 7 re-modeled** from three flat campaigns into one `P28-W7` campaign +
+  three email deliverables (`scripts/seed-prop28-wave7-deliverables.mjs`,
+  idempotent). `campaigns.utm_content` **kept** (not dropped) — it still serves
+  simple single-send campaigns; deliverables carry their own.
+
 ## Maintenance — 2026-07-01
 
 - Reset calendar data (`campaigns_only`): cleared `campaigns`, `campaign_financials`,

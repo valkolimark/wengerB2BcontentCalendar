@@ -22,9 +22,10 @@ detail drawer / campaign modal.
   "Initiative → Campaign; two-level." Every prior task said *"do NOT add a
   deliverable tier — a future cycle will."* **This is that cycle.** CLAUDE.md,
   AGENTS.md, and README must be updated to describe three tiers.
-- **`utm_content` moves down a tier.** It currently lives on `campaigns`
-  (`0001`); the mockup's Rosetta says **`utm_content` = the deliverable**. After
-  this cycle `utm_content` is a **deliverable** field. See migration strategy.
+- **`utm_content` gains a deliverable home.** The mockup's Rosetta says
+  **`utm_content` = the deliverable**, so deliverables get their own. As-built we
+  **kept** `campaigns.utm_content` too (for simple single-send campaigns), so it
+  now exists at both tiers rather than moving wholesale. See re-model note.
 - **`0007`** is the next free migration number.
 
 ## Model (locked)
@@ -52,11 +53,12 @@ detail drawer / campaign modal.
      National/California/Texas) **seeded** from the mockup's `LISTS` dictionary
      **and staff-editable** (name/reach corrections, add/remove — see UI/Actions);
      `deliverable_lists` (`deliverable_id`, `list_id`, pk both) join.
-   - **Data migration:** move `campaigns.utm_content` → a per-campaign
-     single deliverable where sensible, then **drop `campaigns.utm_content`**.
-     Re-model the three Wave 7 campaigns into one `P28-W7` campaign + three email
-     deliverables (supersedes `scripts/seed-prop28-wave7.mjs`). Financials/RLS
-     untouched.
+   - **Data re-model:** the three Wave 7 campaigns → one `P28-W7` campaign +
+     three email deliverables (`scripts/seed-prop28-wave7-deliverables.mjs`,
+     supersedes `scripts/seed-prop28-wave7.mjs`). Financials/RLS untouched.
+     **As-built:** `campaigns.utm_content` was **kept, not dropped** — it still
+     serves simple single-send campaigns that have no deliverables; deliverables
+     carry their own `utm_content`. So `utm_content` lives at both levels.
    - RLS (Cycle 5 pattern): `deliverables`/`deliverable_tasks`/`lists`/
      `deliverable_lists` readable by authenticated, writable by staff. No
      financial columns here.

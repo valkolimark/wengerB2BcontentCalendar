@@ -3,7 +3,21 @@
 # Wenger B2B Content Calendar — project canon
 
 Content calendar + campaign tracker for Wenger's B2B brands. The prototype at
-`reference/ContentTracker.jsx` is the UX source of truth.
+`reference/ContentTracker.jsx` is the UX source of truth; the deliverable-tier
+design lives in `reference/wenger-initiative-campaign-mockup.html`.
+
+## Hierarchy (three tiers, since Cycle 12)
+
+**Initiative → Campaign → Deliverable.**
+- **Initiative** — strategic umbrella, brand-agnostic (brands inherited from its
+  campaigns); references a Salesforce rollup parent (`sf_parents`).
+- **Campaign** — one wave / convention / single send; brand set here; `sf_code`
+  is the campaign's SF grouping.
+- **Deliverable** — the actual send/asset (email/blog/social). Carries its own SF
+  member code (→ `utm_campaign`), `utm_content`, editable `utm_source`
+  (`pardot`|`salesforce`, default pardot), a comp→code→send task chain, and
+  audience `lists` (summed reach). `utm_content` also still exists at the
+  campaign level for simple single-send campaigns with no deliverables.
 
 ## Stack
 
@@ -18,8 +32,13 @@ Grotesk (UI) and IBM Plex Mono (code/dates).
   Tailwind utilities for layout/spacing/type only; don't generate Tailwind
   classes from arbitrary hex.
 - Date/grid math lives in `src/lib/dates.ts`; brand/status tokens in
-  `src/lib/brands.ts`; UTM logic in `src/lib/utm.ts`; domain types in
-  `src/lib/types.ts`.
-- RLS is deferred to Cycle 5 — no row-level security yet.
+  `src/lib/brands.ts`; UTM logic in `src/lib/utm.ts`; deliverable helpers
+  (chain order, reach, PT send time) in `src/lib/deliverables.ts`; Jira export in
+  `src/lib/jira.ts`; domain types in `src/lib/types.ts`.
+- Deliverable UTM: `utm_campaign` = the deliverable's SF member code,
+  `utm_medium` derives from kind (email→email), `utm_source` is stored + editable
+  (unlike campaigns, deliverables don't force `salesforce`).
+- RLS: content tables are read = authenticated, write = staff
+  (`public.is_staff()`); financials are gated separately.
 
 See `cycles/` for the per-cycle build plans.
