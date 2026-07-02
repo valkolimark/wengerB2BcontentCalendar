@@ -58,6 +58,13 @@ export type ImportPayload = {
   }[];
 };
 
+// What importDeliverableCsv applied (Cycle 18).
+export type CsvImportReport = {
+  initiatives: { added: number; updated: number };
+  deliverables: { added: number; updated: number };
+  errors: string[];
+};
+
 // What importWorkbook applied (returned to the client after confirm).
 export type ImportReport = {
   brands: { added: number };

@@ -3,6 +3,19 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.10.0] — Cycle 18 — 2026-07-02 — Initiative + deliverables CSV round-trip
+
+- **Deliverables template (CSV)** — Data menu exports one row per deliverable
+  (initiative + its SF campaigns repeated per row). It reflects current data, so
+  it doubles as the fill-in sheet. See [`templates/`](templates/).
+- **Import deliverables (CSV)** — admins upload the filled sheet; it upserts each
+  initiative’s SF campaigns and its deliverables (matched by **Campaign SF Code +
+  utm_content**), plus comp/code/send tasks and audience lists. Client-side
+  preview (counts + unknown-campaign + parse warnings) before a staff-gated
+  apply; idempotent. Blank cells clear scalar fields; blank comp/code/send steps
+  are left untouched (so linked Jira issues aren’t disturbed).
+- Parser is UTF-8 + Excel-serial-date aware; download carries a BOM for Excel.
+
 ## [1.9.0] — Cycle 17 — 2026-07-02 — Initiative Salesforce campaigns + prepopulated deliverables
 
 ### Added

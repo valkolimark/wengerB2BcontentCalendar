@@ -7,6 +7,8 @@ import {
   ChevronDown,
   FileSpreadsheet,
   GitBranch,
+  Table2,
+  FileUp,
 } from "lucide-react";
 import type {
   Brand,
@@ -15,6 +17,8 @@ import type {
   SfParent,
 } from "@/lib/types";
 import { exportWorkbook, exportSfImportCsv } from "@/lib/xlsx-export";
+import { buildDeliverableCsv } from "@/lib/deliverable-csv";
+import { key } from "@/lib/dates";
 
 /**
  * App-bar data menu: export the workbook (Full vs JMC view), export the
@@ -30,6 +34,7 @@ export function DataMenu({
   canSeeFinancials,
   isAdmin,
   onImport,
+  onImportCsv,
 }: {
   brands: Brand[];
   initiatives: Initiative[];
@@ -38,8 +43,21 @@ export function DataMenu({
   canSeeFinancials: boolean;
   isAdmin: boolean;
   onImport: () => void;
+  onImportCsv: () => void;
 }) {
   const [open, setOpen] = useState(false);
+
+  const doDeliverableCsv = () => {
+    const csv = buildDeliverableCsv(initiatives, campaigns);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `wenger-deliverables_${key(new Date())}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setOpen(false);
+  };
 
   const doExport = (includeFinancials: boolean) => {
     exportWorkbook({
@@ -122,10 +140,39 @@ export function DataMenu({
                 </span>
               </span>
             </button>
+            <button
+              type="button"
+              onClick={doDeliverableCsv}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
+            >
+              <Table2 size={14} className="text-ink-muted" />
+              <span>
+                Deliverables template (CSV)
+                <span className="block text-[11px] text-faint">
+                  fill in &amp; re-upload to update
+                </span>
+              </span>
+            </button>
 
             {isAdmin && (
               <>
                 <div className="my-1 border-t border-hair" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    onImportCsv();
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--color-hover)]"
+                >
+                  <FileUp size={14} className="text-ink-muted" />
+                  <span>
+                    Import deliverables (CSV)
+                    <span className="block text-[11px] text-faint">
+                      initiative + deliverables · preview first
+                    </span>
+                  </span>
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -136,9 +183,9 @@ export function DataMenu({
                 >
                   <Upload size={14} className="text-ink-muted" />
                   <span>
-                    Import…
+                    Import workbook…
                     <span className="block text-[11px] text-faint">
-                      preview before applying
+                      initiatives / campaigns / events
                     </span>
                   </span>
                 </button>

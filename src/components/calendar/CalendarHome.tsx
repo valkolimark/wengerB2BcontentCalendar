@@ -35,6 +35,7 @@ import { InitiativeModal } from "@/components/modals/InitiativeModal";
 import { CampaignModal } from "@/components/modals/CampaignModal";
 import { DataMenu } from "@/components/data/DataMenu";
 import { ImportModal } from "@/components/data/ImportModal";
+import { DeliverableImportModal } from "@/components/data/DeliverableImportModal";
 
 export type CalendarView = "month" | "week" | "day";
 
@@ -94,6 +95,7 @@ export function CalendarHome({
   );
   const [modal, setModal] = useState<ModalState>(null);
   const [importing, setImporting] = useState(false);
+  const [importingCsv, setImportingCsv] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [q, setQ] = useState("");
   const [, startDelete] = useTransition();
@@ -313,6 +315,7 @@ export function CalendarHome({
             canSeeFinancials={canSeeFinancials}
             isAdmin={role === "admin"}
             onImport={() => setImporting(true)}
+            onImportCsv={() => setImportingCsv(true)}
           />
           {role === "admin" && (
             <Link
@@ -505,6 +508,13 @@ export function CalendarHome({
           initiatives={initiatives}
           campaigns={campaigns}
           onClose={() => setImporting(false)}
+        />
+      )}
+
+      {importingCsv && (
+        <DeliverableImportModal
+          campaigns={campaigns}
+          onClose={() => setImportingCsv(false)}
         />
       )}
 

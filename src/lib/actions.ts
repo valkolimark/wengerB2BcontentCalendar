@@ -17,8 +17,10 @@ import {
   assigneeAccountId,
 } from "@/lib/jira-server";
 import { stepSummary, stepDescription, STEP_DEFAULT_OWNER } from "@/lib/jira";
+import type { CsvRow } from "@/lib/deliverable-csv";
 import type {
   CampaignInput,
+  CsvImportReport,
   DeliverableInput,
   DeliverableTask,
   DeliverableWithMeta,
@@ -556,6 +558,200 @@ export async function deleteList(id: string) {
   const { error } = await supabase.from("lists").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/");
+}
+
+/* --------------------------- deliverable CSV import ---------------------- */
+// Upsert an initiative + its deliverables from the fill-in CSV (Cycle 18). The
+// CSV is authoritative for the scalar fields it carries (blank clears). Tasks
+// are upserted only when a due/owner is present (blank leaves the step + its
+// jira_key alone). Lists are replaced with the row's set. Idempotent.
+
+export async function importDeliverableCsv(
+  rows: CsvRow[]
+): Promise<CsvImportReport> {
+  await requireStaff();
+  const supabase = await createClient();
+  const report: CsvImportReport = {
+    initiatives: { added: 0, updated: 0 },
+    deliverables: { added: 0, updated: 0 },
+    errors: [],
+  };
+
+  const [initRes, campRes, listRes] = await Promise.all([
+    supabase.from("initiatives").select("id, name"),
+    supabase.from("campaigns").select("id, sf_code"),
+    supabase.from("lists").select("id, name"),
+  ]);
+  const initByName = new Map<string, string>();
+  for (const i of initRes.data ?? []) initByName.set(i.name.toLowerCase(), i.id);
+  const campBySf = new Map<string, string>();
+  for (const c of campRes.data ?? []) if (c.sf_code) campBySf.set(c.sf_code, c.id);
+  const listByName = new Map<string, string>();
+  for (const l of listRes.data ?? []) listByName.set(l.name.toLowerCase(), l.id);
+
+  const ensureList = async (name: string): Promise<string | null> => {
+    const hit = listByName.get(name.toLowerCase());
+    if (hit) return hit;
+    const { data, error } = await supabase
+      .from("lists")
+      .insert({ name, reach: 0 })
+      .select("id")
+      .single();
+    if (error || !data) {
+      report.errors.push(`List "${name}": ${error?.message ?? "insert failed"}`);
+      return null;
+    }
+    listByName.set(name.toLowerCase(), data.id);
+    return data.id;
+  };
+
+  // Group by initiative so its SF campaigns are written once.
+  const byInit = new Map<string, CsvRow[]>();
+  for (const r of rows) {
+    const k = r.initiative.toLowerCase();
+    (byInit.get(k) ?? byInit.set(k, []).get(k)!).push(r);
+  }
+
+  for (const [, group] of byInit) {
+    const head = group[0];
+    let initId = initByName.get(head.initiative.toLowerCase());
+    if (initId) {
+      // Only touch owner/status when the CSV provides them.
+      const upd: Record<string, string> = {};
+      if (head.initiativeOwner) upd.owner = head.initiativeOwner;
+      if (head.initiativeStatus) upd.status = head.initiativeStatus;
+      if (Object.keys(upd).length) {
+        const { error } = await supabase.from("initiatives").update(upd).eq("id", initId);
+        if (error) report.errors.push(`Initiative "${head.initiative}": ${error.message}`);
+      }
+      report.initiatives.updated++;
+    } else {
+      const { data, error } = await supabase
+        .from("initiatives")
+        .insert({
+          name: head.initiative,
+          owner: head.initiativeOwner || "Unassigned",
+          status: head.initiativeStatus || "Planning",
+        })
+        .select("id")
+        .single();
+      if (error || !data) {
+        report.errors.push(`Initiative "${head.initiative}": ${error?.message ?? "insert failed"}`);
+        continue;
+      }
+      initId = data.id as string;
+      initByName.set(head.initiative.toLowerCase(), initId);
+      report.initiatives.added++;
+    }
+    if (!initId) continue;
+
+    // SF campaigns — set roles that carry any value (blank roles left as-is).
+    for (const role of SF_ROLES) {
+      const v = head.sf[role];
+      if (!v.name && !v.sf_id && !v.sf_code) continue;
+      const { error } = await supabase.from("initiative_sf_campaigns").upsert(
+        {
+          initiative_id: initId,
+          role,
+          name: v.name || null,
+          sf_id: v.sf_id || null,
+          sf_code: v.sf_code || null,
+        },
+        { onConflict: "initiative_id,role" }
+      );
+      if (error) report.errors.push(`SF ${role} for "${head.initiative}": ${error.message}`);
+    }
+
+    // Deliverables.
+    for (const r of group) {
+      if (!r.utm_content || !r.campaignSfCode) continue; // initiative-only row
+      const campaignId = campBySf.get(r.campaignSfCode);
+      if (!campaignId) {
+        report.errors.push(`Unknown Campaign SF Code "${r.campaignSfCode}" (${r.name || r.utm_content}).`);
+        continue;
+      }
+      const kind = DELIVERABLE_KINDS.includes(r.kind) ? r.kind : "email";
+      const fields = {
+        campaign_id: campaignId,
+        kind,
+        name: r.name || r.utm_content,
+        utm_content: r.utm_content,
+        sf_code: r.sf_code || null,
+        sf_id: r.sf_id || null,
+        sf_name: r.sf_name || null,
+        email_subject: r.email_subject || null,
+        segment: r.segment || null,
+        landing_page: r.landing_page || null,
+        send_time: r.send_time || null,
+        status: r.status || null,
+        deliver_at: r.deliver_at || null,
+      };
+
+      const existing = (
+        await supabase
+          .from("deliverables")
+          .select("id")
+          .eq("campaign_id", campaignId)
+          .eq("utm_content", r.utm_content)
+          .maybeSingle()
+      ).data;
+
+      let deliverableId: string;
+      if (existing) {
+        const { error } = await supabase.from("deliverables").update(fields).eq("id", existing.id);
+        if (error) { report.errors.push(`Deliverable "${r.utm_content}": ${error.message}`); continue; }
+        deliverableId = existing.id;
+        report.deliverables.updated++;
+      } else {
+        const { data, error } = await supabase
+          .from("deliverables")
+          .insert({ ...fields, utm_source: "pardot" })
+          .select("id")
+          .single();
+        if (error || !data) { report.errors.push(`Deliverable "${r.utm_content}": ${error?.message ?? "insert failed"}`); continue; }
+        deliverableId = data.id;
+        report.deliverables.added++;
+      }
+
+      // Tasks — upsert present steps; blank steps are left untouched.
+      for (const kk of ["comp", "code", "send"] as const) {
+        const t = r.tasks[kk];
+        if (!t.due && !t.owner) continue;
+        const ex = (
+          await supabase
+            .from("deliverable_tasks")
+            .select("id")
+            .eq("deliverable_id", deliverableId)
+            .eq("kind", kk)
+            .maybeSingle()
+        ).data;
+        if (ex) {
+          await supabase
+            .from("deliverable_tasks")
+            .update({ due: t.due || null, owner: t.owner || null })
+            .eq("id", ex.id);
+        } else {
+          await supabase
+            .from("deliverable_tasks")
+            .insert({ deliverable_id: deliverableId, kind: kk, due: t.due || null, owner: t.owner || null });
+        }
+      }
+
+      // Lists — replace with the row's set.
+      await supabase.from("deliverable_lists").delete().eq("deliverable_id", deliverableId);
+      for (const nm of r.lists) {
+        const lid = await ensureList(nm);
+        if (lid)
+          await supabase
+            .from("deliverable_lists")
+            .insert({ deliverable_id: deliverableId, list_id: lid })
+            .then(() => {});
+      }
+    }
+  }
+
+  revalidatePath("/");
+  return report;
 }
 
 /* -------------------------------- jira sync ------------------------------ */
