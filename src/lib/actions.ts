@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { tintOf, textOf } from "@/lib/brands";
 import { slug, deriveMedium, resolveSource } from "@/lib/utm";
 import { wouldCycle } from "@/lib/sf";
@@ -643,6 +644,73 @@ export async function setFinancialAccess(userId: string, canSee: boolean) {
     .from("profiles")
     .update({ can_see_financials: canSee })
     .eq("id", userId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/team");
+}
+
+/* --------------------------- user management ----------------------------- */
+// Admin-only. These use the service-role admin client (Auth Admin API) — the
+// only path that can create/delete auth users or set a password. requireAdmin()
+// gates every one; the admin client is server-only.
+
+const ROLES = ["admin", "member", "external"];
+const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+/** Create a new user with an initial password and a role. */
+export async function createUser(input: {
+  email: string;
+  password: string;
+  role: Role;
+  canSeeFinancials: boolean;
+}): Promise<{ id: string; email: string }> {
+  await requireAdmin();
+  const email = input.email.trim().toLowerCase();
+  if (!isEmail(email)) throw new Error("Enter a valid email address.");
+  if (input.password.length < 8)
+    throw new Error("Initial password must be at least 8 characters.");
+  const role = ROLES.includes(input.role) ? input.role : "member";
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password: input.password,
+    email_confirm: true, // no verification email; they can sign in immediately
+  });
+  if (error) throw new Error(error.message);
+  const id = data.user!.id;
+
+  // The on_auth_user_created trigger seeds a default profile; set role + access.
+  const { error: pErr } = await admin.from("profiles").upsert(
+    {
+      id,
+      email,
+      role,
+      can_see_financials: role === "external" ? false : input.canSeeFinancials,
+    },
+    { onConflict: "id" }
+  );
+  if (pErr) throw new Error(pErr.message);
+
+  revalidatePath("/team");
+  return { id, email };
+}
+
+/** Set a user's password (admin reset). */
+export async function resetUserPassword(userId: string, password: string) {
+  await requireAdmin();
+  if (password.length < 8)
+    throw new Error("Password must be at least 8 characters.");
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(userId, { password });
+  if (error) throw new Error(error.message);
+}
+
+/** Remove a user entirely (auth row + profile cascade). Can't remove yourself. */
+export async function deleteUser(userId: string) {
+  const me = await requireAdmin();
+  if (userId === me.id) throw new Error("You can't remove your own account.");
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.deleteUser(userId);
   if (error) throw new Error(error.message);
   revalidatePath("/team");
 }

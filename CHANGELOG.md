@@ -3,6 +3,20 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.7.1] — Cycle 15 — 2026-07-02 — Admin user management
+
+The **Team** page can now **add people** to the calendar, not just edit roles.
+
+### Added
+
+- **Add a user** card (admin only): email + generated/editable initial password
+  + role + financial toggle → creates the login immediately (no verification
+  email) and shows the credentials to hand off.
+- Per-user **reset password** and **remove** actions.
+- `createUser` / `resetUserPassword` / `deleteUser` server actions (admin-gated),
+  backed by a new `server-only` service-role admin client
+  (`src/lib/supabase/admin.ts`) using the Supabase Auth Admin API.
+
 ## [1.7.0] — Cycle 14 — 2026-07-02 — Live Jira sync ("Send to Jira")
 
 A campaign's deliverables can now be pushed to Jira as real comp/code/send
