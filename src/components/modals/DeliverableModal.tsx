@@ -35,6 +35,9 @@ export function DeliverableModal({
   campaignName,
   campaignSfCode,
   campaignOverride,
+  campaignSfId,
+  campaignSfName,
+  campaignSfParent,
   lists,
   onClose,
 }: {
@@ -43,6 +46,10 @@ export function DeliverableModal({
   campaignName: string;
   campaignSfCode?: string | null;
   campaignOverride?: string | null;
+  // Campaign / initiative Salesforce context — used to auto-fill blank SF fields.
+  campaignSfId?: string | null;
+  campaignSfName?: string | null;
+  campaignSfParent?: string | null; // initiative rollup chain, "A → B"
   lists: List[];
   onClose: () => void;
 }) {
@@ -52,8 +59,11 @@ export function DeliverableModal({
   const [kind, setKind] = useState<DeliverableKind>(deliverable?.kind ?? "email");
   const [name, setName] = useState(deliverable?.name ?? "");
   const [sfCode, setSfCode] = useState(deliverable?.sf_code ?? "");
-  const [sfId, setSfId] = useState(deliverable?.sf_id ?? "");
-  const [sfName, setSfName] = useState(deliverable?.sf_name ?? "");
+  // SF Campaign ID / Name default from the campaign when the deliverable has none.
+  const [sfId, setSfId] = useState(deliverable?.sf_id || campaignSfId || "");
+  const [sfName, setSfName] = useState(deliverable?.sf_name || campaignSfName || "");
+  const inheritedId = !deliverable?.sf_id && !!campaignSfId;
+  const inheritedName = !deliverable?.sf_name && !!campaignSfName;
   const [content, setContent] = useState(deliverable?.utm_content ?? "");
   const [source, setSource] = useState(deliverable?.utm_source ?? "pardot");
   const [subject, setSubject] = useState(deliverable?.email_subject ?? "");
@@ -199,12 +209,35 @@ export function DeliverableModal({
         <div className="mb-2 mt-1.5 flex items-center text-[11px] font-semibold uppercase tracking-[0.05em] text-faint">
           Salesforce member
         </div>
+
+        {/* Inherited SF lineage: initiative rollup → campaign → this send. */}
+        {(campaignSfParent || campaignSfCode || campaignSfName) && (
+          <div className="mb-2.5 rounded-[9px] border border-hair bg-[var(--color-surface-2)] px-3 py-2 text-[11.5px] text-ink-muted">
+            <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-faint">
+              Salesforce lineage
+            </div>
+            {campaignSfParent && (
+              <div>
+                Initiative rollup: <span className="font-mono">{campaignSfParent}</span>
+              </div>
+            )}
+            <div>
+              Campaign:{" "}
+              <span className="font-medium">{campaignSfName || campaignName}</span>
+              {campaignSfCode && <span className="font-mono"> · {campaignSfCode}</span>}
+              {campaignOverride && (
+                <span className="font-mono text-muted2"> · utm_campaign={campaignOverride}</span>
+              )}
+            </div>
+          </div>
+        )}
+
         <Field label="SF member code (→ utm_campaign)">
           <input
             className={`${inputClass} font-mono`}
             value={sfCode}
             onChange={(e) => setSfCode(e.target.value)}
-            placeholder="P28-EML-EL"
+            placeholder={campaignOverride || campaignSfCode ? "blank → uses campaign UTM" : "P28-EML-EL"}
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
@@ -229,6 +262,13 @@ export function DeliverableModal({
             />
           </Field>
         </div>
+        {(inheritedId || inheritedName) && (
+          <p className="-mt-1.5 mb-2 text-[11px] text-faint">
+            SF Campaign {inheritedId && "ID"}
+            {inheritedId && inheritedName && " & "}
+            {inheritedName && "Name"} auto-filled from the campaign — edit to override.
+          </p>
+        )}
 
         {/* UTM: content + editable source; medium/campaign derive. */}
         <div className="grid grid-cols-2 gap-3">

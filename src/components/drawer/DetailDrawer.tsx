@@ -418,6 +418,11 @@ function CampaignBody({
           campaignName={campaign.name}
           campaignSfCode={campaign.sf_code}
           campaignOverride={campaign.utm_campaign_override}
+          campaignSfId={campaign.sf_id}
+          campaignSfName={campaign.sf_name}
+          campaignSfParent={sfParentChain(campaign.sf_parent_id, sfParents)
+            .map((p) => p.name)
+            .join(" → ")}
           lists={lists}
           onClose={() => setDelivModal(false)}
         />
@@ -428,6 +433,9 @@ function CampaignBody({
           deliverables={deliverables}
           jiraConfigured={jiraConfigured}
           lists={lists}
+          campaignSfParent={sfParentChain(campaign.sf_parent_id, sfParents)
+            .map((p) => p.name)
+            .join(" → ")}
           onClose={() => setJiraOpen(false)}
         />
       )}

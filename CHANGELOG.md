@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.8.1] — 2026-07-02 — Deliverable SF auto-populate
+
+- The deliverable editor now **auto-fills SF Campaign ID / Name from the parent
+  campaign** when the deliverable has none (still editable), and shows the SF
+  **lineage** (initiative rollup → campaign → this send). The SF *member code* is
+  deliberately not inherited — a blank there is what lets `utm_campaign` fall back
+  to the campaign's override.
+
 ## [1.8.0] — Cycle 16 — 2026-07-02 — Actionable Jira handoff
 
 Every synced Jira issue is now self-sufficient for its assignee. No schema

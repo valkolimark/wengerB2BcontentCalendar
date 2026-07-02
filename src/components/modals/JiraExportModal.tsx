@@ -59,12 +59,14 @@ export function JiraExportModal({
   deliverables,
   jiraConfigured,
   lists,
+  campaignSfParent,
   onClose,
 }: {
   campaign: CampaignWithEvents;
   deliverables: DeliverableWithMeta[];
   jiraConfigured: boolean;
   lists: List[];
+  campaignSfParent?: string | null;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -307,6 +309,9 @@ export function JiraExportModal({
           campaignName={campaign.name}
           campaignSfCode={campaign.sf_code}
           campaignOverride={campaign.utm_campaign_override}
+          campaignSfId={campaign.sf_id}
+          campaignSfName={campaign.sf_name}
+          campaignSfParent={campaignSfParent}
           lists={lists}
           onClose={() => setEditDeliv(null)}
         />
