@@ -14,6 +14,14 @@ which is the UX source of truth.
 
 ## Project status
 
+**v1.8.0 — Cycle 16: Actionable Jira handoff.** Synced issues carry **role-scoped
+multi-line descriptions**, a **preflight readiness** panel with **fix-in-place**
+editing, **step-default assignees**, and a **copy-approval watcher** (Whitney on
+comp). New env: `NEXT_PUBLIC_APP_URL`, `JIRA_WATCHER_COMP`.
+
+**v1.7.1 — Cycle 15: Admin user management.** The **Team** page can add people
+(email + initial password + role), reset passwords, and remove users.
+
 **v1.7.0 — Cycle 14: Live Jira sync.** A campaign's deliverables push to Jira as
 real comp/code/send issues — **create or update**, idempotently (via
 `deliverable_tasks.jira_key`) — from the drawer's **Send to Jira** button; CSV

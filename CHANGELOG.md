@@ -3,6 +3,28 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.8.0] — Cycle 16 — 2026-07-02 — Actionable Jira handoff
+
+Every synced Jira issue is now self-sufficient for its assignee. No schema
+changes. (Spec called this "Cycle 15"; renumbered to 16 — 15 was admin users.)
+
+### Added / Changed
+
+- **Role-scoped descriptions:** `stepDescription` now emits a multi-line block
+  per step — Design / Coding / Email-send info cards in text — with a common
+  footer (`Campaign …` + a `Tracker:` deep link when `NEXT_PUBLIC_APP_URL` is
+  set). Shared byte-identically by CSV export and live sync.
+- **Preflight readiness:** the export modal shows blockers (undated step → will
+  skip; send with no lists; code UTM can't assemble) and warnings (missing
+  subject / landing page; blank or unknown owner) grouped by deliverable, with
+  **fix-in-place** — each row opens the deliverable editor stacked over the modal
+  and re-checks on save. Blockers don't gate Send.
+- **Step-default assignees:** blank owners fall back to comp → Chris Klett,
+  code → Adam Bengtson, send → Tami Roberts (CSV + live sync).
+- **Copy-approval watcher:** comp issues get Whitney Winkels as a watcher
+  (`JIRA_WATCHER_COMP` accountId); non-fatal — failures surface as sync warnings.
+- **Config:** `NEXT_PUBLIC_APP_URL`, `JIRA_WATCHER_COMP` (see `.env.example`).
+
 ## [1.7.1] — Cycle 15 — 2026-07-02 — Admin user management
 
 The **Team** page can now **add people** to the calendar, not just edit roles.

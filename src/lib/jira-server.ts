@@ -112,6 +112,22 @@ export async function updateIssue(env: JiraEnv, key: string, f: IssueFields): Pr
   return key;
 }
 
+/**
+ * Add a watcher to an issue. Non-fatal by contract: the caller catches and
+ * records a warning — a watcher failure (incl. "already watching") never fails
+ * the issue. The v2 endpoint takes the accountId as the raw JSON body string.
+ */
+export async function addWatcher(env: JiraEnv, key: string, accountId: string): Promise<void> {
+  const res = await jiraFetch(env, `/issue/${encodeURIComponent(key)}/watchers`, {
+    method: "POST",
+    body: JSON.stringify(accountId),
+  });
+  if (!res.ok && res.status !== 204) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(jiraErr(body, res.status));
+  }
+}
+
 function jiraErr(body: unknown, status: number): string {
   const b = body as { errorMessages?: string[]; errors?: Record<string, string> };
   const msgs = [

@@ -427,6 +427,7 @@ function CampaignBody({
           campaign={campaign}
           deliverables={deliverables}
           jiraConfigured={jiraConfigured}
+          lists={lists}
           onClose={() => setJiraOpen(false)}
         />
       )}

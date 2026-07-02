@@ -13,9 +13,10 @@ import {
   jiraEnv,
   createIssue,
   updateIssue,
+  addWatcher,
   assigneeAccountId,
 } from "@/lib/jira-server";
-import { stepSummary, stepDescription } from "@/lib/jira";
+import { stepSummary, stepDescription, STEP_DEFAULT_OWNER } from "@/lib/jira";
 import type {
   CampaignInput,
   DeliverableInput,
@@ -563,12 +564,22 @@ export async function syncCampaignToJira(campaignId: string): Promise<JiraSyncRe
     };
   });
 
-  const report: JiraSyncReport = { created: 0, updated: 0, skipped: 0, errors: [], issues: [] };
+  const report: JiraSyncReport = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [],
+    warnings: [],
+    issues: [],
+  };
   const campaignCtx = {
+    id: camp.id,
     name: camp.name,
     sf_code: camp.sf_code,
     utm_campaign_override: camp.utm_campaign_override,
   };
+  // Copy-approval watcher: added to comp issues so Whitney sees every design task.
+  const watcherId = process.env.JIRA_WATCHER_COMP?.trim();
 
   for (const d of deliverables) {
     for (const t of d.tasks) {
@@ -576,11 +587,13 @@ export async function syncCampaignToJira(campaignId: string): Promise<JiraSyncRe
         report.skipped++; // undated step — not scheduled work yet
         continue;
       }
+      // Blank owner falls back to the step default (shared with CSV shaping).
+      const owner = t.owner?.trim() || STEP_DEFAULT_OWNER[t.kind];
       const fields = {
         summary: stepSummary(camp.name, d.name, t.kind),
         description: stepDescription(campaignCtx, d, t.kind),
         due: t.due,
-        assigneeId: assigneeAccountId(t.owner),
+        assigneeId: assigneeAccountId(owner),
       };
       try {
         let key = t.jira_key ?? "";
@@ -602,6 +615,17 @@ export async function syncCampaignToJira(campaignId: string): Promise<JiraSyncRe
           if (error) throw new Error(error.message);
           report.created++;
           report.issues.push({ key, summary: fields.summary, action: "created" });
+        }
+
+        // Non-fatal: add the copy-approval watcher to comp issues.
+        if (t.kind === "comp" && watcherId && key) {
+          try {
+            await addWatcher(env, key, watcherId);
+          } catch (e) {
+            report.warnings.push(
+              `${key}: couldn't add watcher — ${e instanceof Error ? e.message : String(e)}`
+            );
+          }
         }
       } catch (e) {
         report.errors.push(`${fields.summary}: ${e instanceof Error ? e.message : String(e)}`);

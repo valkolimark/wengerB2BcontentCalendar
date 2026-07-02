@@ -224,12 +224,13 @@ export type DeliverableWithMeta = Deliverable & {
   lists: List[];
 };
 
-// Result of syncing a campaign's deliverables to Jira (Cycle 14).
+// Result of syncing a campaign's deliverables to Jira (Cycle 14; warnings 16).
 export type JiraSyncReport = {
   created: number;
   updated: number;
   skipped: number;
   errors: string[];
+  warnings: string[];
   issues: { key: string; summary: string; action: "created" | "updated" }[];
 };
 
