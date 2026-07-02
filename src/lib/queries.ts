@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, entitledToFinancials } from "@/lib/auth";
+import { jiraConfigured } from "@/lib/jira-server";
 import type {
   Brand,
   CampaignWithEvents,
@@ -37,6 +38,7 @@ export type HomeData = {
   sfParents: SfParent[];
   lists: List[];
   canSeeFinancials: boolean;
+  jiraConfigured: boolean;
   role: Role;
   userEmail: string | null;
 };
@@ -120,6 +122,7 @@ export async function getHomeData(): Promise<HomeData> {
     sfParents: (sfParentsRes.data ?? []) as SfParent[],
     lists: (listsRes.data ?? []) as List[],
     canSeeFinancials: entitled,
+    jiraConfigured: jiraConfigured(),
     role: profile?.role ?? "external",
     userEmail: profile?.email ?? null,
   };

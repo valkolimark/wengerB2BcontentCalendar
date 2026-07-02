@@ -60,6 +60,7 @@ export function DetailDrawer({
   today,
   canSeeFinancials,
   canWrite,
+  jiraConfigured,
   sfParents,
   focusDeliverableId,
   onSelect,
@@ -75,6 +76,7 @@ export function DetailDrawer({
   today: Date;
   canSeeFinancials: boolean;
   canWrite: boolean;
+  jiraConfigured: boolean;
   sfParents: SfParent[];
   focusDeliverableId?: string | null;
   onSelect: (sel: OpenSelection) => void;
@@ -135,6 +137,7 @@ export function DetailDrawer({
             }
             lists={lists}
             focusDeliverableId={focusDeliverableId}
+            jiraConfigured={jiraConfigured}
             canSeeFinancials={canSeeFinancials}
             sfParents={sfParents}
             copied={copied}
@@ -206,6 +209,7 @@ function CampaignBody({
   parent,
   lists,
   focusDeliverableId,
+  jiraConfigured,
   canSeeFinancials,
   canWrite,
   sfParents,
@@ -221,6 +225,7 @@ function CampaignBody({
   parent: Initiative | null;
   lists: List[];
   focusDeliverableId?: string | null;
+  jiraConfigured: boolean;
   canSeeFinancials: boolean;
   canWrite: boolean;
   sfParents: SfParent[];
@@ -421,6 +426,7 @@ function CampaignBody({
         <JiraExportModal
           campaign={campaign}
           deliverables={deliverables}
+          jiraConfigured={jiraConfigured}
           onClose={() => setJiraOpen(false)}
         />
       )}

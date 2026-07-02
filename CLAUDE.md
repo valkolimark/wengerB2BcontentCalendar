@@ -41,6 +41,10 @@ Grotesk (UI) and IBM Plex Mono (code/dates).
   `utm_campaign_override`, else derive from the campaign SF code (Cycle 13).
 - Calendar renders deliverable comp/code/send dates (from the `deliverable_tasks`
   chain + send date) alongside campaign launch/comp; a legend toggles each.
+- Jira sync (Cycle 14): `syncCampaignToJira` create-or-updates a campaign's
+  comp/code/send issues, idempotent via `deliverable_tasks.jira_key`. Jira creds
+  are server-only env (`JIRA_*`); `src/lib/jira-server.ts` is `server-only` and
+  must never be imported by client code. Shared shaping lives in `src/lib/jira.ts`.
 - RLS: content tables are read = authenticated, write = staff
   (`public.is_staff()`); financials are gated separately.
 

@@ -178,6 +178,8 @@ export type DeliverableTask = {
   kind: DeliverableTaskKind;
   due: string | null; // ISO yyyy-mm-dd
   owner: string | null;
+  // The Jira issue this task syncs to (Cycle 14); null until first sent.
+  jira_key?: string | null;
 };
 
 // A staff-editable audience list with a stored reach snapshot.
@@ -220,6 +222,15 @@ export type Deliverable = {
 export type DeliverableWithMeta = Deliverable & {
   tasks: DeliverableTask[];
   lists: List[];
+};
+
+// Result of syncing a campaign's deliverables to Jira (Cycle 14).
+export type JiraSyncReport = {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+  issues: { key: string; summary: string; action: "created" | "updated" }[];
 };
 
 // A campaign with its events + deliverables nested — the shape from getHomeData.

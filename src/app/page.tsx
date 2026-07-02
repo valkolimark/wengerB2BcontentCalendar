@@ -13,6 +13,7 @@ export default async function Home() {
     sfParents,
     lists,
     canSeeFinancials,
+    jiraConfigured,
     role,
     userEmail,
   } = await getHomeData();
@@ -30,6 +31,7 @@ export default async function Home() {
       todayKey={todayKey}
       role={role}
       canSeeFinancials={canSeeFinancials}
+      jiraConfigured={jiraConfigured}
       userEmail={userEmail}
     />
   );

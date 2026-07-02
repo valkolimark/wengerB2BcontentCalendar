@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { Download } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Download, Check, ExternalLink, Loader2, Send } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +10,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import type { CampaignWithEvents, DeliverableWithMeta } from "@/lib/types";
+import type {
+  CampaignWithEvents,
+  DeliverableWithMeta,
+  JiraSyncReport,
+} from "@/lib/types";
 import { key } from "@/lib/dates";
 import { jiraTasks, jiraCsv } from "@/lib/jira";
+import { syncCampaignToJira } from "@/lib/actions";
+
+const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+const JIRA_BASE = process.env.NEXT_PUBLIC_JIRA_BASE_URL?.replace(/\/$/, "");
 
 const STEP_TINT: Record<string, string> = {
   comp: "#c47614",
@@ -27,13 +36,19 @@ const STEP_TINT: Record<string, string> = {
 export function JiraExportModal({
   campaign,
   deliverables,
+  jiraConfigured,
   onClose,
 }: {
   campaign: CampaignWithEvents;
   deliverables: DeliverableWithMeta[];
+  jiraConfigured: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const campaignName = campaign.name;
+  const [pending, start] = useTransition();
+  const [result, setResult] = useState<JiraSyncReport | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const rows = useMemo(
     () => jiraTasks(campaign, deliverables),
     [campaign, deliverables]
@@ -45,6 +60,19 @@ export function JiraExportModal({
     name: d.name,
     rows: rows.filter((r) => r.deliverable === d.name),
   }));
+
+  const sendToJira = () => {
+    setErr(null);
+    start(async () => {
+      try {
+        const report = await syncCampaignToJira(campaign.id);
+        setResult(report);
+        router.refresh();
+      } catch (e) {
+        setErr(errMsg(e));
+      }
+    });
+  };
 
   const download = () => {
     const blob = new Blob([jiraCsv(rows)], {
@@ -124,9 +152,63 @@ export function JiraExportModal({
           ))}
         </div>
 
+        {/* Live sync result */}
+        {result && (
+          <div className="mt-3 rounded-[10px] border border-hair bg-[var(--color-surface-2)] p-3">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold text-[#2e6b3e]">
+              <Check size={14} /> Synced — {result.created} created · {result.updated} updated
+              {result.skipped > 0 && (
+                <span className="text-faint">· {result.skipped} undated skipped</span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {result.issues.map((i) => {
+                const chip = (
+                  <span className="font-mono text-[11px]">{i.key}</span>
+                );
+                return JIRA_BASE ? (
+                  <a
+                    key={i.key}
+                    href={`${JIRA_BASE}/browse/${i.key}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-line bg-surface px-2 py-0.5 text-ink-muted transition-colors hover:bg-[var(--color-hover)]"
+                    title={i.summary}
+                  >
+                    {chip} <ExternalLink size={10} />
+                  </a>
+                ) : (
+                  <span
+                    key={i.key}
+                    className="inline-flex items-center gap-1 rounded-md border border-line bg-surface px-2 py-0.5 text-ink-muted"
+                    title={i.summary}
+                  >
+                    {chip}
+                  </span>
+                );
+              })}
+            </div>
+            {result.errors.length > 0 && (
+              <ul className="mt-2 list-disc pl-5 text-[11.5px] text-[#b91c1c]">
+                {result.errors.map((e, i) => (
+                  <li key={i}>{e}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+        {err && <p className="mt-2 text-[12.5px] text-[#b91c1c]">{err}</p>}
+        {!jiraConfigured && (
+          <p className="mt-2 text-[11.5px] text-faint">
+            Live sync is off — set <span className="font-mono">JIRA_*</span> env vars to
+            enable “Send to Jira”. CSV export always works.
+          </p>
+        )}
+
         <DialogFooter className="items-center sm:justify-between">
           <span className="text-[11.5px] text-faint">
-            Project <span className="font-mono">WMKT</span> · issue type Task
+            Project <span className="font-mono">MARCOM</span> · issue type Task ·
+            create or update
           </span>
           <div className="flex gap-2">
             <button
@@ -140,10 +222,21 @@ export function JiraExportModal({
               type="button"
               onClick={download}
               disabled={rows.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-[9px] border border-navy bg-navy px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-navy-dark disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-[9px] border border-line bg-surface px-3.5 py-2 text-[13px] font-medium transition-colors hover:bg-[var(--color-hover)] disabled:opacity-50"
             >
-              <Download size={14} /> Export CSV
+              <Download size={14} /> CSV
             </button>
+            {jiraConfigured && (
+              <button
+                type="button"
+                onClick={sendToJira}
+                disabled={pending || rows.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-[9px] border border-navy bg-navy px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-navy-dark disabled:opacity-50"
+              >
+                {pending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                {pending ? "Sending…" : result ? "Re-sync" : "Send to Jira"}
+              </button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>

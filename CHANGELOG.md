@@ -3,6 +3,33 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.7.0] — Cycle 14 — 2026-07-02 — Live Jira sync ("Send to Jira")
+
+A campaign's deliverables can now be pushed to Jira as real comp/code/send
+issues — **create or update**, idempotently — not just previewed + CSV-exported.
+
+### Added
+
+- **Schema** (`0009_jira_key.sql`): `deliverable_tasks.jira_key` (idempotency —
+  update when present, create when absent). The 32 issues created earlier
+  (MARCOM-86…117) were backfilled so the app updates rather than duplicates them.
+- **`src/lib/jira-server.ts`** (`server-only`): Jira Cloud REST v2 client (Basic
+  auth via API token), create/update, owner→accountId mapping.
+- **`syncCampaignToJira(campaignId)`** server action (staff only): create-or-update
+  each dated comp/code/send step, store keys, return created/updated/errors.
+- **UI:** `JiraExportModal` gains a **Send to Jira** button (spinner → created/
+  updated counts + clickable issue links); CSV is now secondary. Shown only when
+  Jira is configured (`getHomeData.jiraConfigured`).
+- **Config:** `JIRA_BASE_URL` / `JIRA_EMAIL` / `JIRA_API_TOKEN` / `JIRA_PROJECT_KEY`
+  (server-only) + public `NEXT_PUBLIC_JIRA_BASE_URL` (see `.env.example`).
+
+### Notes
+
+Live sync needs a Jira API token in the app's server env (Vercel) — the button
+hides and CSV still works until it's set. The live create/update path wasn't
+executed from the app this cycle (no token in env); it mirrors the payloads that
+succeeded in the earlier one-off run.
+
 ## [1.6.0] — Cycle 13 — 2026-07-01 — Deliverable dates on the calendar + July 2026 load
 
 Deliverable **comp / code / send** dates now render on the calendar, campaigns

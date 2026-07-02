@@ -8,11 +8,22 @@ import { slug, deriveMedium, resolveSource } from "@/lib/utm";
 import { wouldCycle } from "@/lib/sf";
 import type { SfParent } from "@/lib/types";
 import { requireStaff, requireAdmin } from "@/lib/auth";
+import {
+  jiraEnv,
+  createIssue,
+  updateIssue,
+  assigneeAccountId,
+} from "@/lib/jira-server";
+import { stepSummary, stepDescription } from "@/lib/jira";
 import type {
   CampaignInput,
   DeliverableInput,
+  DeliverableTask,
+  DeliverableWithMeta,
   ImportPayload,
   ImportReport,
+  JiraSyncReport,
+  List,
   Role,
 } from "@/lib/types";
 
@@ -506,6 +517,99 @@ export async function deleteList(id: string) {
   const { error } = await supabase.from("lists").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/");
+}
+
+/* -------------------------------- jira sync ------------------------------ */
+// Create-or-update the comp/code/send Jira issues for a campaign's email
+// deliverables. Idempotent via deliverable_tasks.jira_key: a task with a key is
+// UPDATED in place; without one it's CREATED and the key stored. Only dated
+// tasks sync (a step with no due date isn't scheduled work yet). Staff only.
+
+export async function syncCampaignToJira(campaignId: string): Promise<JiraSyncReport> {
+  await requireStaff();
+  const env = jiraEnv();
+  if (!env) {
+    throw new Error(
+      "Jira isn't configured. Set JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN, and JIRA_PROJECT_KEY in the server environment."
+    );
+  }
+
+  const supabase = await createClient();
+  const { data: camp, error: campErr } = await supabase
+    .from("campaigns")
+    .select("id, name, sf_code, utm_campaign_override")
+    .eq("id", campaignId)
+    .single();
+  if (campErr || !camp) throw new Error(campErr?.message ?? "Campaign not found.");
+
+  const { data: rows, error: delErr } = await supabase
+    .from("deliverables")
+    .select("*, deliverable_tasks(*), deliverable_lists(list:lists(*))")
+    .eq("campaign_id", campaignId)
+    .eq("kind", "email");
+  if (delErr) throw new Error(delErr.message);
+
+  type Row = DeliverableWithMeta & {
+    deliverable_tasks: DeliverableTask[] | null;
+    deliverable_lists: { list: List | null }[] | null;
+  };
+  const deliverables: DeliverableWithMeta[] = ((rows ?? []) as Row[]).map((d) => {
+    const { deliverable_tasks, deliverable_lists, ...rest } = d;
+    return {
+      ...rest,
+      tasks: deliverable_tasks ?? [],
+      lists: (deliverable_lists ?? []).map((x) => x.list).filter((l): l is List => l != null),
+    };
+  });
+
+  const report: JiraSyncReport = { created: 0, updated: 0, skipped: 0, errors: [], issues: [] };
+  const campaignCtx = {
+    name: camp.name,
+    sf_code: camp.sf_code,
+    utm_campaign_override: camp.utm_campaign_override,
+  };
+
+  for (const d of deliverables) {
+    for (const t of d.tasks) {
+      if (!t.due) {
+        report.skipped++; // undated step — not scheduled work yet
+        continue;
+      }
+      const fields = {
+        summary: stepSummary(camp.name, d.name, t.kind),
+        description: stepDescription(campaignCtx, d, t.kind),
+        due: t.due,
+        assigneeId: assigneeAccountId(t.owner),
+      };
+      try {
+        let key = t.jira_key ?? "";
+        if (key) {
+          const updated = await updateIssue(env, key, fields);
+          if (updated) {
+            report.updated++;
+            report.issues.push({ key, summary: fields.summary, action: "updated" });
+          } else {
+            key = ""; // 404 in Jira — recreate below
+          }
+        }
+        if (!key) {
+          key = await createIssue(env, fields);
+          const { error } = await supabase
+            .from("deliverable_tasks")
+            .update({ jira_key: key })
+            .eq("id", t.id);
+          if (error) throw new Error(error.message);
+          report.created++;
+          report.issues.push({ key, summary: fields.summary, action: "created" });
+        }
+      } catch (e) {
+        report.errors.push(`${fields.summary}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+  }
+
+  revalidatePath("/");
+  return report;
 }
 
 /* --------------------------------- auth ---------------------------------- */

@@ -14,6 +14,11 @@ which is the UX source of truth.
 
 ## Project status
 
+**v1.7.0 — Cycle 14: Live Jira sync.** A campaign's deliverables push to Jira as
+real comp/code/send issues — **create or update**, idempotently (via
+`deliverable_tasks.jira_key`) — from the drawer's **Send to Jira** button; CSV
+export remains. Needs `JIRA_*` server env (see `.env.example`). Built on:
+
 **v1.6.0 — Cycle 13: Deliverable dates on the calendar + July 2026 load.**
 Deliverable **comp / code / send** dates now render on the calendar (amber /
 blue dashed + filled brand), with a legend that toggles each marker type;

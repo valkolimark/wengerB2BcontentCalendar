@@ -65,6 +65,7 @@ export function CalendarHome({
   todayKey,
   role,
   canSeeFinancials,
+  jiraConfigured,
   userEmail,
 }: {
   brands: Brand[];
@@ -75,6 +76,7 @@ export function CalendarHome({
   todayKey: string;
   role: Role;
   canSeeFinancials: boolean;
+  jiraConfigured: boolean;
   userEmail: string | null;
 }) {
   // External users are read-only; admin/member can write content.
@@ -460,6 +462,7 @@ export function CalendarHome({
           lists={lists}
           today={today}
           canSeeFinancials={canSeeFinancials}
+          jiraConfigured={jiraConfigured}
           sfParents={sfParents}
           focusDeliverableId={focusDeliverableId}
           onSelect={setSelected}
