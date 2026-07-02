@@ -33,12 +33,16 @@ export function DeliverableModal({
   deliverable,
   campaignId,
   campaignName,
+  campaignSfCode,
+  campaignOverride,
   lists,
   onClose,
 }: {
   deliverable: DeliverableWithMeta | null;
   campaignId: string;
   campaignName: string;
+  campaignSfCode?: string | null;
+  campaignOverride?: string | null;
   lists: List[];
   onClose: () => void;
 }) {
@@ -58,6 +62,10 @@ export function DeliverableModal({
   const [deliverAt, setDeliverAt] = useState(
     toLocalInput(deliverable?.deliver_at ?? null)
   );
+  const [setupDate, setSetupDate] = useState(deliverable?.setup_date ?? "");
+  const [sendTime, setSendTime] = useState(deliverable?.send_time ?? "");
+  const [status, setStatus] = useState(deliverable?.status ?? "");
+  const [notes, setNotes] = useState(deliverable?.notes ?? "");
 
   // Chain: one editable {due, owner} per comp/code/send.
   const initialChain = useMemo(() => {
@@ -89,12 +97,10 @@ export function DeliverableModal({
     [lists, listIds]
   );
 
-  const preview = assembleDeliverableUtm({
-    utm_source: source,
-    kind,
-    sf_code: sfCode || "SF-CODE",
-    utm_content: content || "content",
-  });
+  const preview = assembleDeliverableUtm(
+    { utm_source: source, kind, sf_code: sfCode, utm_content: content || "content" },
+    { utm_campaign_override: campaignOverride, sf_code: campaignSfCode }
+  );
 
   const toggleList = (id: string) =>
     setListIds((prev) => {
@@ -129,6 +135,10 @@ export function DeliverableModal({
       segment,
       landing_page: landing,
       deliver_at: deliverAt ? deliverAt : null,
+      setup_date: setupDate || null,
+      send_time: sendTime,
+      status,
+      notes,
       sort: deliverable?.sort ?? 0,
       tasks: CHAIN.map((k) => ({
         kind: k,
@@ -269,12 +279,48 @@ export function DeliverableModal({
             />
           </Field>
         </div>
-        <Field label="Deliver at">
-          <input
-            type="datetime-local"
-            className={inputClass}
-            value={deliverAt}
-            onChange={(e) => setDeliverAt(e.target.value)}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Deliver at">
+            <input
+              type="datetime-local"
+              className={inputClass}
+              value={deliverAt}
+              onChange={(e) => setDeliverAt(e.target.value)}
+            />
+          </Field>
+          <Field label="Send time (display)">
+            <input
+              className={inputClass}
+              value={sendTime}
+              onChange={(e) => setSendTime(e.target.value)}
+              placeholder="10:00 AM PT"
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Setup / staging date">
+            <input
+              type="date"
+              className={inputClass}
+              value={setupDate}
+              onChange={(e) => setSetupDate(e.target.value)}
+            />
+          </Field>
+          <Field label="Status">
+            <input
+              className={inputClass}
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              placeholder="Scheduled"
+            />
+          </Field>
+        </div>
+        <Field label="Notes">
+          <textarea
+            className={`${inputClass} min-h-[56px] resize-y`}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Dependencies, hand-off caveats…"
           />
         </Field>
 

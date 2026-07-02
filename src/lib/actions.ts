@@ -260,6 +260,7 @@ export async function createCampaign(
       vendor: input.vendor,
       segment: input.segment.trim(),
       owner: input.owner.trim() || "Unassigned",
+      utm_campaign_override: input.utm_campaign_override.trim() || null,
       ...sfFields(input),
       ...utmFields(input),
     })
@@ -313,6 +314,7 @@ export async function updateCampaign(id: string, input: CampaignInput) {
       vendor: input.vendor,
       segment: input.segment.trim(),
       owner: input.owner.trim() || "Unassigned",
+      utm_campaign_override: input.utm_campaign_override.trim() || null,
       ...sfFields(input),
       ...utmFields(input),
     })
@@ -356,6 +358,10 @@ function deliverableFields(input: DeliverableInput) {
     segment: input.segment.trim() || null,
     landing_page: input.landing_page.trim() || null,
     deliver_at: input.deliver_at || null,
+    setup_date: input.setup_date || null,
+    send_time: input.send_time.trim() || null,
+    status: input.status.trim() || null,
+    notes: input.notes.trim() || null,
     sort: input.sort,
   };
 }

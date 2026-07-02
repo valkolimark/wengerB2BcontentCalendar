@@ -3,6 +3,40 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.6.0] — Cycle 13 — 2026-07-01 — Deliverable dates on the calendar + July 2026 load
+
+Deliverable **comp / code / send** dates now render on the calendar, campaigns
+gain a `utm_campaign_override`, the assistant answers deliverable questions, and
+the July 2026 Campaign Reference is loaded as the first real dataset (the
+acceptance fixture). Built on the Cycle-12 deliverable model (`deliverable_tasks`
+chain + `lists` catalog) — see [`cycles/cycle-13.md`](cycles/cycle-13.md).
+
+### Added
+
+- **Schema** (`0008_deliverable_july.sql`): `campaigns.utm_campaign_override`;
+  `deliverables` gains `setup_date`, `send_time`, `status`, `notes` and a
+  `'landing'` kind.
+- **Calendar** renders deliverable **send** (filled brand), **comp** (amber
+  dashed) and **code** (blue dashed) markers alongside campaign launch/comp. A
+  five-way legend toggles each marker type (client-side). Clicking a deliverable
+  marker opens the drawer focused on that deliverable.
+- **UTM override + fallback:** `utm_campaign` = the deliverable's own SF code if
+  it has one (Prop 28), else `campaign.utm_campaign_override`, else derive from
+  the campaign SF code. Campaign form gains the optional override field.
+- **Assistant** answers deliverable questions — `get_campaign` returns each
+  deliverable (send date/time, comp→code→send chain, subject, segment, lists,
+  own UTM); `list_upcoming_events` includes sends (type `send`). Still read-only.
+- **July 2026 seed** (`scripts/seed-july-2026.mjs`, guarded `CONFIRM=SEED`,
+  idempotent): 6 initiatives, 10 campaigns (4 landing, no dates → no events),
+  11 email deliverables with their chains. **Prop 28 left untouched.**
+
+### Notes / carried
+
+`utm_campaign` slugs for TIM/TX/US athletics and the TX Summer Show brand
+(Wenger) are assumptions pending confirmation; THSCA mid/post comp+code dates and
+TXFN's 7 remaining sends are undated; initiative-level parent SF ids and
+campaign-level window notes have no column and were not stored.
+
 ## [1.5.0] — Cycle 12 — 2026-07-01 — Deliverable tier
 
 The third tier the app always deferred: **Initiative → Campaign → Deliverable.**

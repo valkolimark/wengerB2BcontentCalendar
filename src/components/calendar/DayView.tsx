@@ -1,16 +1,24 @@
-import { CalendarDays, Send, Palette, Mail } from "lucide-react";
-import type { Brand, CalendarEvent } from "@/lib/types";
+import { CalendarDays, Send, Palette, Mail, Code2 } from "lucide-react";
+import type { Brand, CalendarEvent, CalendarMarkerType } from "@/lib/types";
 import { key } from "@/lib/dates";
 
-const MARKER_LABEL: Record<CalendarEvent["type"], string> = {
+const COMP_AMBER = "#c47614";
+const CODE_BLUE = "#3f6fb0";
+
+const MARKER_LABEL: Record<CalendarMarkerType, string> = {
   send: "Send",
   launch: "Launch",
   comp: "Comp review due",
+  deliv_comp: "Comp due",
+  deliv_code: "Code due",
 };
 
+const DELIV = new Set<CalendarMarkerType>(["send", "deliv_comp", "deliv_code"]);
+
 /**
- * Agenda list for the cursor day: a brand bar + icon + campaign name with a
- * "brand · launch/comp" sub-line. Friendly empty state when nothing's scheduled.
+ * Agenda list for the cursor day: a brand bar + icon + name with a
+ * "brand · marker" sub-line. Deliverable markers use amber (comp) / blue (code)
+ * accents; sends are filled. Friendly empty state when nothing's scheduled.
  */
 export function DayView({
   cursor,
@@ -21,7 +29,7 @@ export function DayView({
   cursor: Date;
   eventsByDay: Record<string, CalendarEvent[]>;
   brandMap: Record<string, Brand>;
-  onSelect: (campaignId: string) => void;
+  onSelect: (campaignId: string, deliverableId?: string) => void;
 }) {
   const evs = (eventsByDay[key(cursor)] ?? [])
     .slice()
@@ -40,42 +48,53 @@ export function DayView({
     <div className="flex flex-col">
       {evs.map((ev) => {
         const b = brandMap[ev.brandId];
-        const isSend = ev.type === "send";
+        const isDeliv = DELIV.has(ev.type);
+        const dot = b?.dot ?? "#A09E94";
+
+        let sq: React.CSSProperties;
+        let icon;
+        if (ev.type === "send") {
+          sq = { color: "#fff", background: dot };
+          icon = <Mail size={14} />;
+        } else if (ev.type === "deliv_comp") {
+          sq = { color: "#fff", background: COMP_AMBER };
+          icon = <Palette size={14} />;
+        } else if (ev.type === "deliv_code") {
+          sq = { color: "#fff", background: CODE_BLUE };
+          icon = <Code2 size={14} />;
+        } else if (ev.type === "launch") {
+          sq = { color: b?.text, background: b?.tint };
+          icon = <Send size={14} />;
+        } else {
+          sq = { color: b?.text, background: b?.tint };
+          icon = <Palette size={14} />;
+        }
+
         return (
           <button
             type="button"
             key={ev.id}
-            onClick={() => onSelect(ev.campaignId)}
+            onClick={() => onSelect(ev.campaignId, ev.deliverableId)}
             className="flex items-center gap-3 border-b px-1.5 py-[13px] text-left transition-colors hover:bg-out"
             style={{ borderColor: "var(--color-cell)" }}
           >
             <span
               className="self-stretch rounded-[3px]"
-              style={{ width: 3, background: b?.dot ?? "#A09E94" }}
+              style={{ width: 3, background: dot }}
             />
             <span
               className="flex size-[30px] shrink-0 items-center justify-center rounded-lg"
-              style={
-                isSend
-                  ? { color: "#fff", background: b?.dot ?? "#A09E94" }
-                  : { color: b?.text, background: b?.tint }
-              }
+              style={sq}
             >
-              {ev.type === "send" ? (
-                <Mail size={14} />
-              ) : ev.type === "launch" ? (
-                <Send size={14} />
-              ) : (
-                <Palette size={14} />
-              )}
+              {icon}
             </span>
             <span>
               <span className="block text-sm font-medium">
-                {isSend ? ev.label : ev.campaignName}
+                {isDeliv ? ev.label : ev.campaignName}
               </span>
               <span className="text-xs text-muted2">
                 {b?.label ?? ev.brandId} · {MARKER_LABEL[ev.type]}
-                {isSend ? ` · ${ev.campaignName}` : ""}
+                {isDeliv ? ` · ${ev.campaignName}` : ""}
               </span>
             </span>
           </button>

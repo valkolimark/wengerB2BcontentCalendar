@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import type { DeliverableWithMeta } from "@/lib/types";
+import type { CampaignWithEvents, DeliverableWithMeta } from "@/lib/types";
 import { key } from "@/lib/dates";
 import { jiraTasks, jiraCsv } from "@/lib/jira";
 
@@ -25,17 +25,18 @@ const STEP_TINT: Record<string, string> = {
  * No live Jira API; the CSV imports into Jira (Summary, Type, Assignee, Due).
  */
 export function JiraExportModal({
-  campaignName,
+  campaign,
   deliverables,
   onClose,
 }: {
-  campaignName: string;
+  campaign: CampaignWithEvents;
   deliverables: DeliverableWithMeta[];
   onClose: () => void;
 }) {
+  const campaignName = campaign.name;
   const rows = useMemo(
-    () => jiraTasks(campaignName, deliverables),
-    [campaignName, deliverables]
+    () => jiraTasks(campaign, deliverables),
+    [campaign, deliverables]
   );
   const emails = deliverables.filter((d) => d.kind === "email");
   const owners = Array.from(new Set(rows.map((r) => r.owner).filter(Boolean)));

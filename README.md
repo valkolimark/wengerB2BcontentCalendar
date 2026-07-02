@@ -14,15 +14,17 @@ which is the UX source of truth.
 
 ## Project status
 
-**v1.5.0 — Cycle 12: Deliverable tier.** The app is now three-level —
-**Initiative → Campaign → Deliverable.** A campaign fans out to **deliverables**
-(email/blog/social) — the actual sends — each with its own SF member code
-(→ `utm_campaign`), `utm_content`, editable `utm_source` (`pardot`|`salesforce`),
-a **comp→code→send** hand-off chain, **Email-send**/**Coding** role views, and
-one-or-more **audience lists** (summed reach). Deliverable **sends** show on the
-calendar, and each campaign's emails **export to Jira** as comp/code/send tasks.
-Built on **v1.4.0** (read-only AI assistant), **v1.3.0** (Salesforce rollup
-parents), **v1.2.0** (SF Campaign ID/Name), **v1.1.0** (theming), and **v1.0.0**.
+**v1.6.0 — Cycle 13: Deliverable dates on the calendar + July 2026 load.**
+Deliverable **comp / code / send** dates now render on the calendar (amber /
+blue dashed + filled brand), with a legend that toggles each marker type;
+clicking one opens the drawer on that deliverable. Campaigns gain an optional
+`utm_campaign_override`, the AI assistant answers deliverable questions, and the
+**July 2026 Campaign Reference** is loaded as the first real dataset. Built on
+**v1.5.0 — Cycle 12: Deliverable tier**, where the app became three-level —
+**Initiative → Campaign → Deliverable** — with the comp→code→send chain,
+**Email-send**/**Coding** role views, **audience lists** (summed reach), and
+**Jira export**. Prior: **v1.4.0** (AI assistant), **v1.3.0** (Salesforce rollup
+parents), **v1.2.0** (SF Campaign ID/Name), **v1.1.0** (theming), **v1.0.0**.
 See [Theming & branding](#theming--branding), [Deployment](#deployment-vercel),
 the [Go-live checklist](#go-live-checklist),
 [Authentication & roles](#authentication--roles), [Spreadsheet

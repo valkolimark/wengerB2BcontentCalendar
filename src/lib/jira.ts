@@ -22,13 +22,14 @@ const STEP_SUMMARY: Record<JiraTask["kind"], string> = {
 
 // Build the comp/code/send task rows for every email deliverable in a campaign.
 export function jiraTasks(
-  campaignName: string,
+  campaign: { name: string; utm_campaign_override: string | null; sf_code: string },
   deliverables: DeliverableWithMeta[]
 ): JiraTask[] {
+  const campaignName = campaign.name;
   const rows: JiraTask[] = [];
   for (const d of deliverables) {
     if (d.kind !== "email") continue;
-    const utm = assembleDeliverableUtm(d);
+    const utm = assembleDeliverableUtm(d, campaign);
     const lists = d.lists
       .map((l) => `${l.name} (${fmtReach(l.reach)})`)
       .join(" + ");

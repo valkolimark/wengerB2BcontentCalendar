@@ -7,7 +7,8 @@
 import type { Anthropic } from "@anthropic-ai/sdk";
 import type { HomeData } from "@/lib/queries";
 import type { CampaignWithEvents } from "@/lib/types";
-import { assembleUtm } from "@/lib/utm";
+import { assembleUtm, assembleDeliverableUtm } from "@/lib/utm";
+import { orderedTasks, reachOf, sendDateOf } from "@/lib/deliverables";
 import { sfParentChain } from "@/lib/sf";
 import { rollup } from "@/lib/rollups";
 import { parseISO } from "@/lib/dates";
@@ -41,7 +42,7 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
   {
     name: "get_campaign",
     description:
-      "Full facts for one campaign: channel, vendor, segment, owner, Salesforce identity (code/id/name) and reporting parent chain, the event timeline (launch + comp-due with dates), and the live-assembled UTM string. Includes leads/pipeline only when the caller is entitled to financials.",
+      "Full facts for one campaign: channel, vendor, segment, owner, Salesforce identity (code/id/name) and reporting parent chain, the event timeline (launch + comp-due), the campaign UTM, AND its deliverables (the individual sends). Each deliverable has its kind, send date/time, comp→code→send chain with owners, email subject, segment, audience lists (+combined reach), landing page, and its own assembled UTM. Includes leads/pipeline only when the caller is entitled to financials.",
     input_schema: {
       type: "object",
       properties: {
@@ -65,7 +66,7 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
   {
     name: "list_upcoming_events",
     description:
-      "Upcoming events (launch and comp-due) in ascending date order from today onward. Powers 'next email / next launch' questions. Events are at launch/campaign granularity — there is no per-send or per-wave model.",
+      "Upcoming events in ascending date order from today onward: campaign launches, campaign comp-due, and deliverable SENDS (the actual emails). Powers 'next email / next send / next launch' questions. Deliverable sends carry the deliverable name and utm_content.",
     input_schema: {
       type: "object",
       properties: {
@@ -81,8 +82,9 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
         },
         type: {
           type: "string",
-          enum: ["launch", "comp"],
-          description: "Optionally filter to launches or comp-due events only.",
+          enum: ["launch", "comp", "send"],
+          description:
+            "Optionally filter to launches, campaign comp-due, or deliverable sends only.",
         },
         from: {
           type: "string",
@@ -119,6 +121,29 @@ function campaignFacts(ctx: ToolContext, c: CampaignWithEvents) {
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((e) => ({ type: e.type, date: e.date, label: e.label }));
 
+  const deliverables = c.deliverables
+    .slice()
+    .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name))
+    .map((d) => ({
+      name: d.name,
+      kind: d.kind,
+      send_date: sendDateOf(d),
+      send_time: d.send_time,
+      utm_content: d.utm_content,
+      utm: assembleDeliverableUtm(d, c), // deliverable SF code, else campaign override/code
+      email_subject: d.email_subject,
+      segment: d.segment,
+      landing_page: d.landing_page,
+      audience_lists: d.lists.map((l) => l.name),
+      combined_reach: reachOf(d.lists),
+      chain: orderedTasks(d.tasks).map((t) => ({
+        step: t.kind,
+        due: t.due,
+        owner: t.owner,
+      })),
+      notes: d.notes,
+    }));
+
   const facts: Record<string, unknown> = {
     id: c.id,
     name: c.name,
@@ -131,9 +156,11 @@ function campaignFacts(ctx: ToolContext, c: CampaignWithEvents) {
     sf_code: c.sf_code,
     sf_id: c.sf_id,
     sf_name: c.sf_name,
+    utm_campaign_override: c.utm_campaign_override,
     sf_parent_chain: chain, // leaf → root
     timeline,
-    utm, // assembled live, never stored
+    utm, // campaign-level, assembled live, never stored
+    deliverables,
   };
   // Financials only when entitled — otherwise absent (not zeroed/masked).
   if (ctx.data.canSeeFinancials) {
@@ -181,7 +208,7 @@ function upcomingEvents(
   for (const c of ctx.data.campaigns) {
     if (!inScope(c)) continue;
     for (const e of c.events) {
-      if (args.type && e.type !== args.type) continue;
+      if (args.type && args.type !== e.type) continue;
       if (parseISO(e.date) < fromD) continue;
       rows.push({
         date: e.date,
@@ -191,6 +218,21 @@ function upcomingEvents(
         brand: brandLabel(ctx, c.brand_id),
         initiative: initiativeName(ctx, c.initiative_id),
       });
+    }
+    // Deliverable sends (the actual emails).
+    if (!args.type || args.type === "send") {
+      for (const d of c.deliverables) {
+        const date = sendDateOf(d);
+        if (!date || parseISO(date) < fromD) continue;
+        rows.push({
+          date,
+          type: "send",
+          label: `${d.name}${d.utm_content ? ` (${d.utm_content})` : ""}`,
+          campaign: c.name,
+          brand: brandLabel(ctx, c.brand_id),
+          initiative: initiativeName(ctx, c.initiative_id),
+        });
+      }
     }
   }
   rows.sort((a, b) => a.date.localeCompare(b.date));
@@ -238,6 +280,7 @@ export function runTool(
             brand: brandLabel(ctx, c.brand_id),
             initiative: initiativeName(ctx, c.initiative_id),
             sf_code: c.sf_code,
+            deliverables: c.deliverables.length,
           }));
         return { results };
       }

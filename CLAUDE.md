@@ -35,9 +35,12 @@ Grotesk (UI) and IBM Plex Mono (code/dates).
   `src/lib/brands.ts`; UTM logic in `src/lib/utm.ts`; deliverable helpers
   (chain order, reach, PT send time) in `src/lib/deliverables.ts`; Jira export in
   `src/lib/jira.ts`; domain types in `src/lib/types.ts`.
-- Deliverable UTM: `utm_campaign` = the deliverable's SF member code,
-  `utm_medium` derives from kind (email→email), `utm_source` is stored + editable
-  (unlike campaigns, deliverables don't force `salesforce`).
+- Deliverable UTM: `utm_medium` derives from kind (email→email); `utm_source` is
+  stored + editable (unlike campaigns, deliverables don't force `salesforce`);
+  `utm_campaign` = the deliverable's own SF code if set, else the campaign's
+  `utm_campaign_override`, else derive from the campaign SF code (Cycle 13).
+- Calendar renders deliverable comp/code/send dates (from the `deliverable_tasks`
+  chain + send date) alongside campaign launch/comp; a legend toggles each.
 - RLS: content tables are read = authenticated, write = staff
   (`public.is_staff()`); financials are gated separately.
 

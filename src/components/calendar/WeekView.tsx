@@ -17,7 +17,7 @@ export function WeekView({
   eventsByDay: Record<string, CalendarEvent[]>;
   brandMap: Record<string, Brand>;
   today: Date | null;
-  onSelect: (campaignId: string) => void;
+  onSelect: (campaignId: string, deliverableId?: string) => void;
 }) {
   const days = weekDays(cursor);
 

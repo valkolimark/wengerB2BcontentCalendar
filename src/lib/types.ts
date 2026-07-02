@@ -96,9 +96,13 @@ export type Initiative = {
 
 export type EventType = "launch" | "comp";
 
-// Calendar markers: the two campaign events plus deliverable "send" markers
-// (Cycle 12), synthesized from each deliverable's send date.
-export type CalendarMarkerType = EventType | "send";
+// Calendar markers: the two campaign events (launch, comp) plus the three
+// deliverable markers (Cycle 13) — send, and the comp/code hand-off dates.
+export type CalendarMarkerType =
+  | EventType
+  | "send"
+  | "deliv_comp"
+  | "deliv_code";
 
 export type CampaignEvent = {
   id: string;
@@ -118,6 +122,8 @@ export type CalendarEvent = {
   brandId: string;
   campaignId: string;
   campaignName: string;
+  // Set for deliverable markers (send/comp/code) so a click can focus the card.
+  deliverableId?: string;
 };
 
 // A campaign's own event, as nested under a campaign in getHomeData.
@@ -149,6 +155,9 @@ export type Campaign = {
   utm_source: string;
   utm_medium: string;
   utm_content: string;
+  // When set, utm_campaign uses this slug; else it derives from the SF code
+  // (Cycle 13). A deliverable with its own SF code overrides at its level.
+  utm_campaign_override: string | null;
   leads: number;
   pipeline: number;
 };
@@ -198,6 +207,11 @@ export type Deliverable = {
   segment: string | null;
   landing_page: string | null;
   deliver_at: string | null; // ISO timestamptz
+  // Cycle 13: setup/staging date, send-time display echo, status, free notes.
+  setup_date: string | null; // ISO yyyy-mm-dd
+  send_time: string | null;
+  status: string | null;
+  notes: string | null;
   sort: number;
   created_at?: string;
 };
@@ -229,6 +243,10 @@ export type DeliverableInput = {
   segment: string;
   landing_page: string;
   deliver_at: string | null; // ISO timestamptz or null
+  setup_date: string | null;
+  send_time: string;
+  status: string;
+  notes: string;
   sort: number;
   // The comp/code/send chain (any subset) and selected list ids.
   tasks: { kind: DeliverableTaskKind; due: string | null; owner: string }[];
@@ -250,4 +268,5 @@ export type CampaignInput = {
   sf_name: string;
   sf_parent_id: string | null;
   utm_content: string;
+  utm_campaign_override: string;
 };

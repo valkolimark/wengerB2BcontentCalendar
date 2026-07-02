@@ -83,16 +83,42 @@ export const assembleUtm = (params: {
 export const deliverableMedium = (kind: string): string =>
   kind === "email" ? "email" : kind === "social" ? "social" : "referral";
 
-/** Assemble the UTM string for a single deliverable (source is stored/editable). */
-export const assembleDeliverableUtm = (d: {
-  utm_source?: string | null;
-  kind: string;
+/** Optional campaign context a deliverable falls back to for utm_campaign. */
+type CampaignUtmCtx = {
+  utm_campaign_override?: string | null;
   sf_code?: string | null;
-  utm_content?: string | null;
-}): string =>
+};
+
+/**
+ * Resolve a deliverable's utm_campaign (Cycle 13):
+ *  1. the deliverable's own SF code, if it has one (e.g. Prop 28 segments); else
+ *  2. the campaign's utm_campaign_override, if set; else
+ *  3. the campaign's SF code (canon derive).
+ */
+export const deliverableUtmCampaign = (
+  d: { sf_code?: string | null },
+  campaign?: CampaignUtmCtx
+): string => {
+  const own = d.sf_code?.trim();
+  if (own) return own;
+  const override = campaign?.utm_campaign_override?.trim();
+  if (override) return override;
+  return campaign?.sf_code?.trim() || "SF-CODE";
+};
+
+/** Assemble the UTM string for a single deliverable (source is stored/editable). */
+export const assembleDeliverableUtm = (
+  d: {
+    utm_source?: string | null;
+    kind: string;
+    sf_code?: string | null;
+    utm_content?: string | null;
+  },
+  campaign?: CampaignUtmCtx
+): string =>
   assembleUtm({
     source: d.utm_source || "pardot",
     medium: deliverableMedium(d.kind),
-    campaign: d.sf_code || "SF-CODE",
+    campaign: deliverableUtmCampaign(d, campaign),
     content: d.utm_content || "content",
   });

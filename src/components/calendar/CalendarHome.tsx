@@ -10,6 +10,7 @@ import { AssistantPanel } from "@/components/assistant/AssistantPanel";
 import type {
   Brand,
   CalendarEvent,
+  CalendarMarkerType,
   CampaignWithEvents,
   Initiative,
   List,
@@ -18,7 +19,7 @@ import type {
   SfParent,
 } from "@/lib/types";
 import { parseISO } from "@/lib/dates";
-import { sendDateOf } from "@/lib/deliverables";
+import { sendDateOf, taskOf } from "@/lib/deliverables";
 import { deleteCampaign, deleteInitiative, signOut } from "@/lib/actions";
 import { Toolbar } from "./Toolbar";
 import { BrandLegend } from "./BrandLegend";
@@ -82,7 +83,13 @@ export function CalendarHome({
   const [view, setView] = useState<CalendarView>("month");
   const [cursor, setCursor] = useState<Date>(DEFAULT_CURSOR);
   const [hiddenBrands, setHiddenBrands] = useState<Set<string>>(new Set());
+  const [hiddenTypes, setHiddenTypes] = useState<Set<CalendarMarkerType>>(
+    new Set()
+  );
   const [selected, setSelected] = useState<Selected>(null);
+  const [focusDeliverableId, setFocusDeliverableId] = useState<string | null>(
+    null
+  );
   const [modal, setModal] = useState<ModalState>(null);
   const [importing, setImporting] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
@@ -116,17 +123,21 @@ export function CalendarHome({
           campaignName: c.name,
         }));
         for (const d of c.deliverables) {
-          const date = sendDateOf(d);
-          if (!date) continue;
-          events.push({
-            id: `send-${d.id}`,
-            date,
-            type: "send",
-            label: d.name,
+          const base = {
             brandId: c.brand_id,
             campaignId: c.id,
             campaignName: c.name,
-          });
+            deliverableId: d.id,
+          };
+          const send = sendDateOf(d);
+          if (send)
+            events.push({ id: `send-${d.id}`, date: send, type: "send", label: `Send · ${d.name}`, ...base });
+          const comp = taskOf(d.tasks, "comp")?.due;
+          if (comp)
+            events.push({ id: `dcomp-${d.id}`, date: comp, type: "deliv_comp", label: `Comp · ${d.name}`, ...base });
+          const code = taskOf(d.tasks, "code")?.due;
+          if (code)
+            events.push({ id: `dcode-${d.id}`, date: code, type: "deliv_code", label: `Code · ${d.name}`, ...base });
         }
         return events;
       }),
@@ -137,10 +148,19 @@ export function CalendarHome({
     const map: Record<string, CalendarEvent[]> = {};
     for (const ev of calendarEvents) {
       if (hiddenBrands.has(ev.brandId)) continue;
+      if (hiddenTypes.has(ev.type)) continue;
       (map[ev.date] ??= []).push(ev);
     }
     return map;
-  }, [calendarEvents, hiddenBrands]);
+  }, [calendarEvents, hiddenBrands, hiddenTypes]);
+
+  const toggleType = (t: CalendarMarkerType) =>
+    setHiddenTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(t)) next.delete(t);
+      else next.add(t);
+      return next;
+    });
 
   // Orphans: no initiative, or pointing at a missing one.
   const initiativeIds = useMemo(
@@ -200,8 +220,10 @@ export function CalendarHome({
       return next;
     });
 
-  const selectCampaign = (campaignId: string) =>
+  const selectCampaign = (campaignId: string, deliverableId?: string) => {
     setSelected({ kind: "campaign", id: campaignId });
+    setFocusDeliverableId(deliverableId ?? null);
+  };
 
   const editSelected = () => {
     if (!selected) return;
@@ -340,6 +362,7 @@ export function CalendarHome({
         />
 
         <section className="mb-[26px] rounded-[14px] border border-hair bg-surface p-4">
+          <MarkerLegend hidden={hiddenTypes} onToggle={toggleType} />
           {view === "month" && (
             <MonthView
               cursor={cursor}
@@ -438,6 +461,7 @@ export function CalendarHome({
           today={today}
           canSeeFinancials={canSeeFinancials}
           sfParents={sfParents}
+          focusDeliverableId={focusDeliverableId}
           onSelect={setSelected}
           onClose={() => setSelected(null)}
           canWrite={canWrite}
@@ -482,6 +506,64 @@ export function CalendarHome({
       )}
 
       <AssistantPanel open={assistantOpen} onClose={() => setAssistantOpen(false)} />
+    </div>
+  );
+}
+
+/* --------------------------- marker legend/toggles ------------------------ */
+
+const MARKERS: {
+  type: CalendarMarkerType;
+  label: string;
+  group: "Campaign" | "Deliverables";
+  swatch: React.CSSProperties;
+}[] = [
+  { type: "launch", label: "Launches", group: "Campaign", swatch: { background: "#1C3B66", opacity: 0.28 } },
+  { type: "comp", label: "Comp-review due", group: "Campaign", swatch: { border: "1px dashed #8a8a93" } },
+  { type: "deliv_comp", label: "Comp due", group: "Deliverables", swatch: { border: "1px dashed #c47614" } },
+  { type: "deliv_code", label: "Code due", group: "Deliverables", swatch: { border: "1px dashed #3f6fb0" } },
+  { type: "send", label: "Sends", group: "Deliverables", swatch: { background: "#1C3B66" } },
+];
+
+function MarkerLegend({
+  hidden,
+  onToggle,
+}: {
+  hidden: Set<CalendarMarkerType>;
+  onToggle: (t: CalendarMarkerType) => void;
+}) {
+  const groups: ("Campaign" | "Deliverables")[] = ["Campaign", "Deliverables"];
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hair pb-3">
+      {groups.map((g) => (
+        <div key={g} className="flex items-center gap-1.5">
+          <span className="text-[10.5px] font-semibold uppercase tracking-[0.06em] text-faint">
+            {g}
+          </span>
+          {MARKERS.filter((m) => m.group === g).map((m) => {
+            const on = !hidden.has(m.type);
+            return (
+              <button
+                key={m.type}
+                type="button"
+                onClick={() => onToggle(m.type)}
+                aria-pressed={on}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-[3px] text-[11.5px] font-medium transition-colors ${
+                  on
+                    ? "border-line bg-surface text-ink"
+                    : "border-hair bg-transparent text-muted2 line-through opacity-60"
+                }`}
+              >
+                <span
+                  className="size-2.5 rounded-[3px]"
+                  style={{ ...m.swatch, opacity: on ? m.swatch.opacity ?? 1 : 0.4 }}
+                />
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

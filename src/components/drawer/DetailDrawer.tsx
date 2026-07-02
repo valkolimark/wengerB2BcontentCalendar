@@ -61,6 +61,7 @@ export function DetailDrawer({
   canSeeFinancials,
   canWrite,
   sfParents,
+  focusDeliverableId,
   onSelect,
   onClose,
   onEdit,
@@ -75,6 +76,7 @@ export function DetailDrawer({
   canSeeFinancials: boolean;
   canWrite: boolean;
   sfParents: SfParent[];
+  focusDeliverableId?: string | null;
   onSelect: (sel: OpenSelection) => void;
   onClose: () => void;
   onEdit: () => void;
@@ -132,6 +134,7 @@ export function DetailDrawer({
                 : null
             }
             lists={lists}
+            focusDeliverableId={focusDeliverableId}
             canSeeFinancials={canSeeFinancials}
             sfParents={sfParents}
             copied={copied}
@@ -202,6 +205,7 @@ function CampaignBody({
   brand,
   parent,
   lists,
+  focusDeliverableId,
   canSeeFinancials,
   canWrite,
   sfParents,
@@ -216,6 +220,7 @@ function CampaignBody({
   brand: Brand | undefined;
   parent: Initiative | null;
   lists: List[];
+  focusDeliverableId?: string | null;
   canSeeFinancials: boolean;
   canWrite: boolean;
   sfParents: SfParent[];
@@ -379,10 +384,15 @@ function CampaignBody({
             <DeliverableCard
               key={d.id}
               deliverable={d}
+              campaignCtx={{
+                utm_campaign_override: campaign.utm_campaign_override,
+                sf_code: campaign.sf_code,
+              }}
               accent={dot}
               copied={copied}
               onCopy={onCopy}
               canWrite={canWrite}
+              defaultOpen={d.id === focusDeliverableId}
               onEdit={() => setDelivModal(d)}
               onDelete={() => removeDeliverable(d)}
             />
@@ -401,13 +411,15 @@ function CampaignBody({
           deliverable={delivModal}
           campaignId={campaign.id}
           campaignName={campaign.name}
+          campaignSfCode={campaign.sf_code}
+          campaignOverride={campaign.utm_campaign_override}
           lists={lists}
           onClose={() => setDelivModal(false)}
         />
       )}
       {jiraOpen && (
         <JiraExportModal
-          campaignName={campaign.name}
+          campaign={campaign}
           deliverables={deliverables}
           onClose={() => setJiraOpen(false)}
         />
@@ -426,23 +438,27 @@ const KIND_ACCENT: Record<string, string> = {
 
 function DeliverableCard({
   deliverable: d,
+  campaignCtx,
   accent,
   copied,
   onCopy,
   canWrite,
+  defaultOpen,
   onEdit,
   onDelete,
 }: {
   deliverable: DeliverableWithMeta;
+  campaignCtx: { utm_campaign_override: string | null; sf_code: string };
   accent: string;
   copied: boolean;
   onCopy: (t: string) => void;
   canWrite: boolean;
+  defaultOpen?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const utm = assembleDeliverableUtm(d);
+  const [open, setOpen] = useState(!!defaultOpen);
+  const utm = assembleDeliverableUtm(d, campaignCtx);
   const tasks = orderedTasks(d.tasks);
   const reach = reachOf(d.lists);
   const kindColor = KIND_ACCENT[d.kind] ?? accent;
@@ -539,6 +555,13 @@ function DeliverableCard({
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+
+          {d.notes && (
+            <div className="mt-2 flex gap-1.5 rounded-[7px] border border-[#efe9d9] bg-[#fbfaf6] px-2.5 py-1.5 text-[11.5px] text-ink-muted">
+              <span className="mt-px font-semibold text-[#8a5a0b]">Note</span>
+              <span className="break-words">{d.notes}</span>
             </div>
           )}
 

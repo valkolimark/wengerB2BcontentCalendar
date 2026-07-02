@@ -65,6 +65,7 @@ export function CampaignModal({
   const [sfParentId, setSfParentId] = useState(campaign?.sf_parent_id ?? "");
   const [parentModalOpen, setParentModalOpen] = useState(false);
   const [content, setContent] = useState(campaign?.utm_content ?? "");
+  const [override, setOverride] = useState(campaign?.utm_campaign_override ?? "");
   const [launch, setLaunch] = useState("");
   const [autoComp, setAutoComp] = useState(true);
   const [comp, setComp] = useState("");
@@ -83,7 +84,7 @@ export function CampaignModal({
   const preview = assembleUtm({
     source,
     medium,
-    campaign: sf || "SF-CODE",
+    campaign: override.trim() || sf || "SF-CODE",
     content: content || "content",
   });
 
@@ -111,6 +112,7 @@ export function CampaignModal({
       sf_name: sfName,
       sf_parent_id: sfParentId || null,
       utm_content: content,
+      utm_campaign_override: override,
     };
     start(async () => {
       try {
@@ -292,6 +294,21 @@ export function CampaignModal({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="wave1-urgency"
+          />
+        </Field>
+
+        <Field
+          label={
+            <span className="flex items-center gap-2">
+              utm_campaign override <span className="text-muted2">optional</span>
+            </span>
+          }
+        >
+          <input
+            className={`${inputClass} font-mono`}
+            value={override}
+            onChange={(e) => setOverride(e.target.value)}
+            placeholder="derives from SF code if blank"
           />
         </Field>
 
