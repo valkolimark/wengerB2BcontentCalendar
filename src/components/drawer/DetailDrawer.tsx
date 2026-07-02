@@ -424,6 +424,14 @@ function CampaignBody({
           campaignSfParent={sfParentChain(campaign.sf_parent_id, sfParents)
             .map((p) => p.name)
             .join(" → ")}
+          channelSf={
+            parent?.sf && {
+              email: parent.sf.email,
+              landing: parent.sf.landing,
+              social: parent.sf.social,
+            }
+          }
+          parentSf={parent?.sf?.parent ?? null}
           lists={lists}
           onClose={() => setDelivModal(false)}
         />
@@ -437,6 +445,14 @@ function CampaignBody({
           campaignSfParent={sfParentChain(campaign.sf_parent_id, sfParents)
             .map((p) => p.name)
             .join(" → ")}
+          channelSf={
+            parent?.sf && {
+              email: parent.sf.email,
+              landing: parent.sf.landing,
+              social: parent.sf.social,
+            }
+          }
+          parentSf={parent?.sf?.parent ?? null}
           onClose={() => setJiraOpen(false)}
         />
       )}
@@ -532,12 +548,34 @@ function DeliverableCard({
 
           {/* role views: send + coding */}
           <div className="mb-3 flex flex-col gap-2">
-            {(d.email_subject || d.segment || d.sf_name || d.deliver_at) && (
+            {(d.email_subject || d.segment || d.sf_name || d.deliver_at || d.lists.length > 0) && (
               <RoleCard icon={<Mail size={12} />} title="Email send" tint="#0f7a6e">
                 {d.sf_name && <RoleKV k="SF campaign" v={d.sf_name} />}
                 {d.deliver_at && <RoleKV k="Deliver" v={fmtDeliver(d.deliver_at)} mono />}
                 {d.email_subject && <RoleKV k="Subject" v={d.email_subject} />}
                 {d.segment && <RoleKV k="Segment" v={d.segment} />}
+                {d.lists.length > 0 && (
+                  <div className="flex gap-2 py-[3px] text-[12px]">
+                    <span className="flex min-w-[74px] shrink-0 items-center gap-1 font-medium text-muted2">
+                      <Radio size={11} /> Audience
+                    </span>
+                    <span className="flex flex-1 flex-col gap-1">
+                      {d.lists.map((l) => (
+                        <span key={l.id} className="inline-flex items-center gap-1.5">
+                          {l.name}
+                          <span className="rounded bg-[var(--color-hover)] px-1 font-mono text-[10.5px] text-muted2">
+                            {fmtReach(l.reach)}
+                          </span>
+                        </span>
+                      ))}
+                      {d.lists.length > 1 && (
+                        <span className="font-mono text-[10.5px] text-[#3f6fb0]">
+                          {fmtReach(reach)} combined
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                )}
               </RoleCard>
             )}
             <RoleCard icon={<Code2 size={12} />} title="Coding" tint="#3f6fb0">
@@ -546,33 +584,6 @@ function DeliverableCard({
               {d.landing_page && <RoleKV k="Landing page" v={d.landing_page} mono />}
             </RoleCard>
           </div>
-
-          {/* audience lists */}
-          {d.lists.length > 0 && (
-            <div className="mb-1">
-              <div className="mb-1.5 flex items-center gap-1.5 text-[9.5px] font-semibold uppercase tracking-[0.06em] text-faint">
-                <Radio size={11} /> Audience{d.lists.length > 1 ? " lists" : ""}
-                {d.lists.length > 1 && (
-                  <span className="font-mono normal-case tracking-normal text-[#3f6fb0]">
-                    {fmtReach(reach)} combined
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {d.lists.map((l) => (
-                  <span
-                    key={l.id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-0.5 text-[11.5px]"
-                  >
-                    {l.name}
-                    <span className="rounded bg-[var(--color-hover)] px-1 font-mono text-[10.5px] text-muted2">
-                      {fmtReach(l.reach)}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
 
           {d.notes && (
             <div className="mt-2 flex gap-1.5 rounded-[7px] border border-[#efe9d9] bg-[#fbfaf6] px-2.5 py-1.5 text-[11.5px] text-ink-muted">

@@ -84,6 +84,19 @@ export type InitiativeStatus =
   | "Planning"
   | "Complete";
 
+// Salesforce campaigns defined on an initiative (Cycle 17): the rollup parent
+// plus a child campaign per channel. Deliverables prepopulate from the child
+// matching their kind, so SF identity is entered once per initiative.
+export type SfRole = "parent" | "email" | "landing" | "social";
+export type SfCampaignRef = {
+  name: string | null;
+  sf_id: string | null;
+  sf_code: string | null;
+};
+export type InitiativeSf = Partial<Record<SfRole, SfCampaignRef>>;
+// Form input: all four roles, blanks allowed.
+export type InitiativeSfInput = Record<SfRole, { name: string; sf_id: string; sf_code: string }>;
+
 export type Initiative = {
   id: string;
   name: string;
@@ -92,6 +105,8 @@ export type Initiative = {
   // break a fetch; STATUS in brands.ts is the source of known values.
   status: InitiativeStatus | string;
   created_at?: string;
+  // Salesforce campaigns by role, attached in getHomeData (Cycle 17).
+  sf?: InitiativeSf;
 };
 
 export type EventType = "launch" | "comp";
@@ -167,7 +182,7 @@ export type Campaign = {
 // (the actual sends/assets). Each email deliverable carries its own SF member
 // code + id, utm_content, a comp→code→send chain, and one-or-more audience lists.
 
-export type DeliverableKind = "email" | "blog" | "social";
+export type DeliverableKind = "email" | "landing" | "social" | "blog";
 export type DeliverableTaskKind = "comp" | "code" | "send";
 export type UtmSource = "pardot" | "salesforce";
 

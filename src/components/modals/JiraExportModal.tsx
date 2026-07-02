@@ -25,6 +25,7 @@ import type {
   DeliverableWithMeta,
   JiraSyncReport,
   List,
+  SfCampaignRef,
 } from "@/lib/types";
 import { key } from "@/lib/dates";
 import {
@@ -60,6 +61,8 @@ export function JiraExportModal({
   jiraConfigured,
   lists,
   campaignSfParent,
+  channelSf,
+  parentSf,
   onClose,
 }: {
   campaign: CampaignWithEvents;
@@ -67,6 +70,8 @@ export function JiraExportModal({
   jiraConfigured: boolean;
   lists: List[];
   campaignSfParent?: string | null;
+  channelSf?: Partial<Record<"email" | "landing" | "social", SfCampaignRef>>;
+  parentSf?: SfCampaignRef | null;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -312,6 +317,8 @@ export function JiraExportModal({
           campaignSfId={campaign.sf_id}
           campaignSfName={campaign.sf_name}
           campaignSfParent={campaignSfParent}
+          channelSf={channelSf}
+          parentSf={parentSf}
           lists={lists}
           onClose={() => setEditDeliv(null)}
         />

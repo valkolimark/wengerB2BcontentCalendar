@@ -3,6 +3,28 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.9.0] — Cycle 17 — 2026-07-02 — Initiative Salesforce campaigns + prepopulated deliverables
+
+### Added
+
+- **Initiative Salesforce campaigns** (`0010_initiative_sf.sql` →
+  `initiative_sf_campaigns`): an initiative carries its SF **parent** (rollup)
+  plus a **child** campaign per channel — **email / landing / social** — each
+  with a name, SF id, and code. Editable in the Initiative modal.
+- **Deliverables prepopulate** their SF **Name / ID** (and **Code** for new
+  deliverables) from the initiative's child matching the deliverable's kind;
+  switching channel fills still-blank fields; the editor shows the SF lineage
+  (parent rollup → channel child → campaign). Campaign SF remains a fallback.
+- **Audience lists now show in the Email Send** role card (names + reach +
+  combined) instead of a separate block.
+- Backfill (`scripts/backfill-initiative-sf.mjs`) seeded 11 child rows from the
+  existing email/landing campaign pairs.
+
+### Fixed
+
+- `DeliverableKind` (+ kind options and server validation) gained `landing`,
+  which the schema has allowed since `0008`.
+
 ## Maintenance — 2026-07-02 — THSCA 2026 E3–PS3 load + Jira update sync
 
 Data only (no version bump, no schema/app change). Reconciled the THSCA 2026

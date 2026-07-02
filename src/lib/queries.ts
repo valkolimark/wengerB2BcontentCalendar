@@ -9,9 +9,11 @@ import type {
   DeliverableWithMeta,
   EventLite,
   Initiative,
+  InitiativeSf,
   List,
   Role,
   SfParent,
+  SfRole,
 } from "@/lib/types";
 
 // Nested deliverable row from the campaigns embed: tasks + lists come back under
@@ -54,7 +56,7 @@ export async function getHomeData(): Promise<HomeData> {
   const profile = await getCurrentProfile();
   const entitled = entitledToFinancials(profile);
 
-  const [brandsRes, initiativesRes, campaignsRes, sfParentsRes, listsRes] =
+  const [brandsRes, initiativesRes, campaignsRes, sfParentsRes, listsRes, initSfRes] =
     await Promise.all([
       supabase.from("brands").select("*").order("label"),
       supabase.from("initiatives").select("*").order("name"),
@@ -70,6 +72,9 @@ export async function getHomeData(): Promise<HomeData> {
         .select("id, name, reach, region")
         .order("region")
         .order("name"),
+      supabase
+        .from("initiative_sf_campaigns")
+        .select("initiative_id, role, name, sf_id, sf_code"),
     ]);
 
   if (brandsRes.error) throw new Error(brandsRes.error.message);
@@ -77,6 +82,24 @@ export async function getHomeData(): Promise<HomeData> {
   if (campaignsRes.error) throw new Error(campaignsRes.error.message);
   if (sfParentsRes.error) throw new Error(sfParentsRes.error.message);
   if (listsRes.error) throw new Error(listsRes.error.message);
+  if (initSfRes.error) throw new Error(initSfRes.error.message);
+
+  // Group initiative SF campaigns by initiative → role map.
+  const sfByInitiative = new Map<string, InitiativeSf>();
+  for (const row of (initSfRes.data ?? []) as {
+    initiative_id: string;
+    role: SfRole;
+    name: string | null;
+    sf_id: string | null;
+    sf_code: string | null;
+  }[]) {
+    const m = sfByInitiative.get(row.initiative_id) ?? {};
+    m[row.role] = { name: row.name, sf_id: row.sf_id, sf_code: row.sf_code };
+    sfByInitiative.set(row.initiative_id, m);
+  }
+  const initiatives: Initiative[] = ((initiativesRes.data ?? []) as Initiative[]).map(
+    (i) => ({ ...i, sf: sfByInitiative.get(i.id) ?? {} })
+  );
 
   // Financials: only queried when entitled. RLS is the real backstop.
   const financials = new Map<string, { leads: number; pipeline: number }>();
@@ -117,7 +140,7 @@ export async function getHomeData(): Promise<HomeData> {
 
   return {
     brands: (brandsRes.data ?? []) as Brand[],
-    initiatives: (initiativesRes.data ?? []) as Initiative[],
+    initiatives,
     campaigns,
     sfParents: (sfParentsRes.data ?? []) as SfParent[],
     lists: (listsRes.data ?? []) as List[],

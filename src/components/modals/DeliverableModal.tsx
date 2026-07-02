@@ -14,6 +14,7 @@ import type {
   DeliverableTaskKind,
   DeliverableWithMeta,
   List,
+  SfCampaignRef,
 } from "@/lib/types";
 import { assembleDeliverableUtm } from "@/lib/utm";
 import { TASK_LABEL, fmtReach } from "@/lib/deliverables";
@@ -22,7 +23,7 @@ import { Field, inputClass } from "./Field";
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-const KINDS: DeliverableKind[] = ["email", "blog", "social"];
+const KINDS: DeliverableKind[] = ["email", "landing", "social", "blog"];
 const CHAIN: DeliverableTaskKind[] = ["comp", "code", "send"];
 
 // timestamptz → the value a <input type="datetime-local"> expects (local, no tz).
@@ -38,6 +39,8 @@ export function DeliverableModal({
   campaignSfId,
   campaignSfName,
   campaignSfParent,
+  channelSf,
+  parentSf,
   lists,
   onClose,
 }: {
@@ -46,24 +49,51 @@ export function DeliverableModal({
   campaignName: string;
   campaignSfCode?: string | null;
   campaignOverride?: string | null;
-  // Campaign / initiative Salesforce context — used to auto-fill blank SF fields.
+  // Campaign Salesforce context — legacy fallback for auto-fill.
   campaignSfId?: string | null;
   campaignSfName?: string | null;
-  campaignSfParent?: string | null; // initiative rollup chain, "A → B"
+  campaignSfParent?: string | null; // sf_parents rollup chain, "A → B"
+  // Initiative Salesforce campaigns: per-channel children + the rollup parent.
+  // A deliverable prepopulates from the child matching its kind.
+  channelSf?: Partial<Record<"email" | "landing" | "social", SfCampaignRef>>;
+  parentSf?: SfCampaignRef | null;
   lists: List[];
   onClose: () => void;
 }) {
   const router = useRouter();
   const editing = !!deliverable;
 
+  // Resolved SF default for a channel: initiative child, else campaign (legacy).
+  const chan = (k: DeliverableKind): SfCampaignRef | undefined => {
+    if (k === "email") return channelSf?.email;
+    if (k === "landing") return channelSf?.landing;
+    if (k === "social") return channelSf?.social;
+    return undefined;
+  };
+  const defName = (k: DeliverableKind): string => chan(k)?.name || campaignSfName || "";
+  const defId = (k: DeliverableKind): string => chan(k)?.sf_id || campaignSfId || "";
+  const defCode = (k: DeliverableKind): string => chan(k)?.sf_code || "";
+
   const [kind, setKind] = useState<DeliverableKind>(deliverable?.kind ?? "email");
   const [name, setName] = useState(deliverable?.name ?? "");
-  const [sfCode, setSfCode] = useState(deliverable?.sf_code ?? "");
-  // SF Campaign ID / Name default from the campaign when the deliverable has none.
-  const [sfId, setSfId] = useState(deliverable?.sf_id || campaignSfId || "");
-  const [sfName, setSfName] = useState(deliverable?.sf_name || campaignSfName || "");
-  const inheritedId = !deliverable?.sf_id && !!campaignSfId;
-  const inheritedName = !deliverable?.sf_name && !!campaignSfName;
+  // sf_code prefills from the channel child for NEW deliverables only (a blank
+  // on an existing one is intentional — it lets utm_campaign use the override).
+  const [sfCode, setSfCode] = useState(
+    deliverable?.sf_code || (deliverable ? "" : defCode("email"))
+  );
+  const [sfId, setSfId] = useState(deliverable?.sf_id || defId(deliverable?.kind ?? "email"));
+  const [sfName, setSfName] = useState(deliverable?.sf_name || defName(deliverable?.kind ?? "email"));
+  const inheritedId = !deliverable?.sf_id && !!defId(kind);
+  const inheritedName = !deliverable?.sf_name && !!defName(kind);
+
+  // Switching channel fills any STILL-BLANK SF fields from that channel's
+  // defaults (never clobbers a typed value). Done here, not in an effect.
+  const onKindChange = (k: DeliverableKind) => {
+    setKind(k);
+    setSfName((v) => v || defName(k));
+    setSfId((v) => v || defId(k));
+    if (!editing) setSfCode((v) => v || defCode(k));
+  };
   const [content, setContent] = useState(deliverable?.utm_content ?? "");
   const [source, setSource] = useState(deliverable?.utm_source ?? "pardot");
   const [subject, setSubject] = useState(deliverable?.email_subject ?? "");
@@ -186,7 +216,7 @@ export function DeliverableModal({
             <select
               className={`${inputClass} cursor-pointer`}
               value={kind}
-              onChange={(e) => setKind(e.target.value as DeliverableKind)}
+              onChange={(e) => onKindChange(e.target.value as DeliverableKind)}
             >
               {KINDS.map((k) => (
                 <option key={k} value={k}>
@@ -210,27 +240,42 @@ export function DeliverableModal({
           Salesforce member
         </div>
 
-        {/* Inherited SF lineage: initiative rollup → campaign → this send. */}
-        {(campaignSfParent || campaignSfCode || campaignSfName) && (
-          <div className="mb-2.5 rounded-[9px] border border-hair bg-[var(--color-surface-2)] px-3 py-2 text-[11.5px] text-ink-muted">
-            <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-faint">
-              Salesforce lineage
-            </div>
-            {campaignSfParent && (
-              <div>
-                Initiative rollup: <span className="font-mono">{campaignSfParent}</span>
+        {/* Inherited SF lineage: parent rollup → channel child → campaign. */}
+        {(() => {
+          const p = parentSf;
+          const c = chan(kind);
+          if (!p && !c && !campaignSfParent && !campaignSfCode) return null;
+          return (
+            <div className="mb-2.5 rounded-[9px] border border-hair bg-[var(--color-surface-2)] px-3 py-2 text-[11.5px] text-ink-muted">
+              <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-faint">
+                Salesforce lineage
               </div>
-            )}
-            <div>
-              Campaign:{" "}
-              <span className="font-medium">{campaignSfName || campaignName}</span>
-              {campaignSfCode && <span className="font-mono"> · {campaignSfCode}</span>}
-              {campaignOverride && (
-                <span className="font-mono text-muted2"> · utm_campaign={campaignOverride}</span>
+              {(p?.name || p?.sf_code || campaignSfParent) && (
+                <div>
+                  Parent rollup:{" "}
+                  <span className="font-medium">{p?.name || campaignSfParent}</span>
+                  {p?.sf_code && <span className="font-mono"> · {p.sf_code}</span>}
+                  {p?.sf_id && <span className="font-mono text-muted2"> · {p.sf_id}</span>}
+                </div>
               )}
+              {(c?.name || c?.sf_code || c?.sf_id) && (
+                <div>
+                  {kind[0].toUpperCase() + kind.slice(1)} child:{" "}
+                  <span className="font-medium">{c?.name}</span>
+                  {c?.sf_code && <span className="font-mono"> · {c.sf_code}</span>}
+                  {c?.sf_id && <span className="font-mono text-muted2"> · {c.sf_id}</span>}
+                </div>
+              )}
+              <div>
+                Campaign: <span className="font-medium">{campaignName}</span>
+                {campaignSfCode && <span className="font-mono"> · {campaignSfCode}</span>}
+                {campaignOverride && (
+                  <span className="font-mono text-muted2"> · utm_campaign={campaignOverride}</span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <Field label="SF member code (→ utm_campaign)">
           <input
@@ -266,7 +311,7 @@ export function DeliverableModal({
           <p className="-mt-1.5 mb-2 text-[11px] text-faint">
             SF Campaign {inheritedId && "ID"}
             {inheritedId && inheritedName && " & "}
-            {inheritedName && "Name"} auto-filled from the campaign — edit to override.
+            {inheritedName && "Name"} auto-filled from the initiative — edit to override.
           </p>
         )}
 

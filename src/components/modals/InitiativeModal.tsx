@@ -10,7 +10,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import type { Brand, CampaignWithEvents, Initiative } from "@/lib/types";
+import type {
+  Brand,
+  CampaignWithEvents,
+  Initiative,
+  InitiativeSfInput,
+  SfRole,
+} from "@/lib/types";
 import { STATUS_OPTS } from "@/lib/brands";
 import {
   adoptCampaigns,
@@ -39,6 +45,23 @@ export function InitiativeModal({
   const [name, setName] = useState(initiative?.name ?? "");
   const [owner, setOwner] = useState(initiative?.owner ?? "");
   const [status, setStatus] = useState(initiative?.status ?? "Planning");
+
+  // Salesforce campaigns (parent rollup + a child per channel).
+  const initSf = initiative?.sf ?? {};
+  const roleInit = (r: SfRole) => ({
+    name: initSf[r]?.name ?? "",
+    sf_id: initSf[r]?.sf_id ?? "",
+    sf_code: initSf[r]?.sf_code ?? "",
+  });
+  const [sf, setSf] = useState<InitiativeSfInput>({
+    parent: roleInit("parent"),
+    email: roleInit("email"),
+    landing: roleInit("landing"),
+    social: roleInit("social"),
+  });
+  const setSfField = (role: SfRole, field: "name" | "sf_id" | "sf_code", val: string) =>
+    setSf((s) => ({ ...s, [role]: { ...s[role], [field]: val } }));
+
   const [cq, setCq] = useState("");
   const [attach, setAttach] = useState<string[]>([]);
   const [err, setErr] = useState<string | null>(null);
@@ -88,9 +111,9 @@ export function InitiativeModal({
     start(async () => {
       try {
         const id = editing
-          ? (await updateInitiative(initiative!.id, { name, owner, status }),
+          ? (await updateInitiative(initiative!.id, { name, owner, status, sf }),
             initiative!.id)
-          : await createInitiative({ name, owner, status });
+          : await createInitiative({ name, owner, status, sf });
         if (attach.length) await adoptCampaigns(id, attach);
         router.refresh();
         onClose();
@@ -102,7 +125,7 @@ export function InitiativeModal({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[540px]">
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>{editing ? "Edit initiative" : "New initiative"}</DialogTitle>
         </DialogHeader>
@@ -135,6 +158,53 @@ export function InitiativeModal({
               ))}
             </select>
           </Field>
+        </div>
+
+        {/* Salesforce campaigns — parent rollup + a child per channel.
+            Deliverables prepopulate their SF fields from the child for their kind. */}
+        <div className="mb-2 mt-1.5 flex items-center text-[11px] font-semibold uppercase tracking-[0.05em] text-faint">
+          Salesforce campaigns
+          <span className="ml-1.5 rounded-md bg-[var(--color-surface-2)] px-[7px] py-px text-[11px] font-medium normal-case tracking-normal text-muted2">
+            optional · prefills deliverables
+          </span>
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {(
+            [
+              ["parent", "Parent (rollup)"],
+              ["email", "Email child"],
+              ["landing", "Landing page child"],
+              ["social", "Social child"],
+            ] as [SfRole, string][]
+          ).map(([role, label]) => (
+            <div key={role}>
+              <div className="mb-1 text-[12px] font-medium text-ink-muted">{label}</div>
+              <div className="grid grid-cols-[1fr_128px_104px] gap-2">
+                <input
+                  className={inputClass}
+                  value={sf[role].name}
+                  onChange={(e) => setSfField(role, "name", e.target.value)}
+                  placeholder="Campaign name"
+                  autoComplete="off"
+                  spellCheck={false}
+                  data-1p-ignore
+                  data-lpignore="true"
+                />
+                <input
+                  className={`${inputClass} font-mono`}
+                  value={sf[role].sf_id}
+                  onChange={(e) => setSfField(role, "sf_id", e.target.value)}
+                  placeholder="SF ID (701…)"
+                />
+                <input
+                  className={`${inputClass} font-mono`}
+                  value={sf[role].sf_code}
+                  onChange={(e) => setSfField(role, "sf_code", e.target.value)}
+                  placeholder="Code"
+                />
+              </div>
+            </div>
+          ))}
         </div>
 
         {members.length > 0 && (

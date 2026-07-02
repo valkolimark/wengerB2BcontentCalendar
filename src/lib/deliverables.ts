@@ -25,8 +25,9 @@ export const TASK_LABEL: Record<DeliverableTaskKind, string> = {
 
 export const KIND_LABEL: Record<DeliverableKind, string> = {
   email: "Email",
-  blog: "Blog",
+  landing: "Landing page",
   social: "Social",
+  blog: "Blog",
 };
 
 /** Tasks in comp → code → send order (missing steps simply absent). */

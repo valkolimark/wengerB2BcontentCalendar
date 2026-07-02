@@ -24,9 +24,11 @@ import type {
   DeliverableWithMeta,
   ImportPayload,
   ImportReport,
+  InitiativeSfInput,
   JiraSyncReport,
   List,
   Role,
+  SfRole,
 } from "@/lib/types";
 
 /* --------------------------------- brands -------------------------------- */
@@ -149,10 +151,43 @@ export async function deleteSfParent(id: string) {
 
 /* ------------------------------ initiatives ------------------------------ */
 
+// Upsert an initiative's SF campaigns (parent + per-channel children). An
+// all-blank role is deleted so it doesn't linger as an empty row.
+const SF_ROLES: SfRole[] = ["parent", "email", "landing", "social"];
+async function writeInitiativeSf(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  initiativeId: string,
+  sf?: InitiativeSfInput
+) {
+  if (!sf) return;
+  for (const role of SF_ROLES) {
+    const v = sf[role] ?? { name: "", sf_id: "", sf_code: "" };
+    const name = v.name.trim() || null;
+    const sf_id = v.sf_id.trim() || null;
+    const sf_code = v.sf_code.trim() || null;
+    if (!name && !sf_id && !sf_code) {
+      await supabase
+        .from("initiative_sf_campaigns")
+        .delete()
+        .eq("initiative_id", initiativeId)
+        .eq("role", role);
+    } else {
+      const { error } = await supabase
+        .from("initiative_sf_campaigns")
+        .upsert(
+          { initiative_id: initiativeId, role, name, sf_id, sf_code },
+          { onConflict: "initiative_id,role" }
+        );
+      if (error) throw new Error(error.message);
+    }
+  }
+}
+
 export async function createInitiative(input: {
   name: string;
   owner: string;
   status: string;
+  sf?: InitiativeSfInput;
 }): Promise<string> {
   await requireStaff();
   const name = input.name.trim();
@@ -169,13 +204,14 @@ export async function createInitiative(input: {
     .select("id")
     .single();
   if (error) throw new Error(error.message);
+  await writeInitiativeSf(supabase, data.id, input.sf);
   revalidatePath("/");
   return data.id as string;
 }
 
 export async function updateInitiative(
   id: string,
-  input: { name: string; owner: string; status: string }
+  input: { name: string; owner: string; status: string; sf?: InitiativeSfInput }
 ) {
   await requireStaff();
   const name = input.name.trim();
@@ -191,6 +227,7 @@ export async function updateInitiative(
     })
     .eq("id", id);
   if (error) throw new Error(error.message);
+  await writeInitiativeSf(supabase, id, input.sf);
   revalidatePath("/");
 }
 
@@ -349,7 +386,7 @@ export async function deleteCampaign(id: string) {
 // its own SF member code, utm_content, editable utm_source (pardot|salesforce),
 // a comp→code→send chain, and audience lists. Chain + lists are replace-on-save.
 
-const DELIVERABLE_KINDS = ["email", "blog", "social"];
+const DELIVERABLE_KINDS = ["email", "landing", "social", "blog"];
 const UTM_SOURCES = ["pardot", "salesforce"];
 
 // Scalar deliverable columns, normalized (blanks → null).
