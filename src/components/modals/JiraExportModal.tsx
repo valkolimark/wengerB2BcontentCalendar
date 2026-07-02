@@ -7,7 +7,7 @@ import {
   Check,
   ExternalLink,
   Loader2,
-  Send,
+  Upload,
   Pencil,
   AlertTriangle,
   ShieldAlert,
@@ -214,7 +214,7 @@ export function JiraExportModal({
         {result && (
           <div className="mt-3 rounded-[10px] border border-hair bg-[var(--color-surface-2)] p-3">
             <div className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold text-[#2e6b3e]">
-              <Check size={14} /> Synced — {result.created} created · {result.updated} updated
+              <Check size={14} /> Uploaded — {result.created} created · {result.updated} updated
               {result.skipped > 0 && (
                 <span className="text-faint">· {result.skipped} undated skipped</span>
               )}
@@ -294,8 +294,8 @@ export function JiraExportModal({
                 disabled={pending || rows.length === 0}
                 className="inline-flex items-center gap-1.5 rounded-[9px] border border-navy bg-navy px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-navy-dark disabled:opacity-50"
               >
-                {pending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                {pending ? "Sending…" : result ? "Re-sync" : "Send to Jira"}
+                {pending ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                {pending ? "Uploading…" : result ? "Re-upload" : "Upload to Jira"}
               </button>
             )}
           </div>

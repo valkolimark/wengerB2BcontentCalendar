@@ -21,6 +21,7 @@ import {
   Plus,
   Code2,
   Radio,
+  Upload,
 } from "lucide-react";
 import type {
   Brand,
@@ -371,7 +372,7 @@ function CampaignBody({
                   onClick={() => setJiraOpen(true)}
                   className="inline-flex items-center gap-1 rounded-md border border-line bg-surface px-2 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:bg-[var(--color-hover)]"
                 >
-                  <GitBranch size={11} /> Jira
+                  <Upload size={11} /> Upload to Jira
                 </button>
               )}
               <button
