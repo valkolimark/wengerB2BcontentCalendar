@@ -113,6 +113,30 @@ export async function updateIssue(env: JiraEnv, key: string, f: IssueFields): Pr
 }
 
 /**
+ * Find issues in the project whose summary EXACTLY equals `summary`. Used to
+ * adopt an already-existing Jira issue instead of creating a duplicate when a
+ * task has no stored key. JQL `~` is a fuzzy contains match, so we exact-filter
+ * the candidates in code. Returns [] on any search failure (caller falls back
+ * to create).
+ */
+export async function findIssuesBySummary(env: JiraEnv, summary: string): Promise<string[]> {
+  const jql = `project = "${env.projectKey}" AND summary ~ ${JSON.stringify(summary)}`;
+  try {
+    const res = await fetch(
+      `${env.baseUrl}/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&maxResults=20&fields=summary`,
+      { headers: { Authorization: authHeader(env), Accept: "application/json" } }
+    );
+    if (!res.ok) return [];
+    const j = (await res.json()) as { issues?: { key: string; fields: { summary: string } }[] };
+    return (j.issues ?? [])
+      .filter((i) => i.fields.summary === summary)
+      .map((i) => i.key);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Add a watcher to an issue. Non-fatal by contract: the caller catches and
  * records a warning — a watcher failure (incl. "already watching") never fails
  * the issue. The v2 endpoint takes the accountId as the raw JSON body string.

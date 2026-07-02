@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## [1.10.1] — 2026-07-02 — Upload to Jira: adopt, don't duplicate
+
+- **Upload to Jira** now finds an existing issue by its **exact summary** and
+  **updates** it when a task has no stored `jira_key` (e.g. an issue created
+  outside the app, or a re-created deliverable) — instead of creating a
+  duplicate. It only creates when no matching issue exists; an adopted key is
+  saved so future syncs go straight to update. Ambiguous matches (2+) are
+  skipped with a warning rather than duplicated.
+
 ## [1.10.0] — Cycle 18 — 2026-07-02 — Initiative + deliverables CSV round-trip
 
 - **Deliverables template (CSV)** — Data menu exports one row per deliverable

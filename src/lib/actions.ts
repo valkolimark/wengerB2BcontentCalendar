@@ -15,6 +15,7 @@ import {
   updateIssue,
   addWatcher,
   assigneeAccountId,
+  findIssuesBySummary,
 } from "@/lib/jira-server";
 import { stepSummary, stepDescription, STEP_DEFAULT_OWNER } from "@/lib/jira";
 import type { CsvRow } from "@/lib/deliverable-csv";
@@ -830,9 +831,29 @@ export async function syncCampaignToJira(campaignId: string): Promise<JiraSyncRe
       };
       try {
         let key = t.jira_key ?? "";
+        let adopted = false;
+        // No stored key → try to adopt an existing issue by exact summary so we
+        // update it instead of creating a duplicate.
+        if (!key) {
+          const found = await findIssuesBySummary(env, fields.summary);
+          if (found.length === 1) {
+            key = found[0];
+            adopted = true;
+          } else if (found.length > 1) {
+            report.warnings.push(
+              `${fields.summary}: ${found.length} matching Jira issues — resolve manually, skipped`
+            );
+            continue;
+          }
+        }
+
         if (key) {
           const updated = await updateIssue(env, key, fields);
           if (updated) {
+            // Persist an adopted key so future syncs go straight to update.
+            if (adopted) {
+              await supabase.from("deliverable_tasks").update({ jira_key: key }).eq("id", t.id);
+            }
             report.updated++;
             report.issues.push({ key, summary: fields.summary, action: "updated" });
           } else {
