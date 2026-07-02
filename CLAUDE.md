@@ -45,6 +45,19 @@ Grotesk (UI) and IBM Plex Mono (code/dates).
   comp/code/send issues, idempotent via `deliverable_tasks.jira_key`. Jira creds
   are server-only env (`JIRA_*`); `src/lib/jira-server.ts` is `server-only` and
   must never be imported by client code. Shared shaping lives in `src/lib/jira.ts`.
+- Already-**sent** deliverables carry **no** `deliverable_tasks` rows, so they
+  never generate Jira issues (sync only pushes dated tasks).
+
+### THSCA 2026 campaign (canon)
+
+- `utm_campaign` is **locked to `thsca2026`** (`utm_campaign_override`). The
+  `tx-athletics-2026` slug belongs to the separate **TX Athletics** sequence, not
+  THSCA (shared TX audience, different campaign).
+- Task owners: **comp → Chris Klett**, **code + send → Tami Roberts** (Pardot
+  build). **Adam Bengtson** is not a task owner — his UTM / landing-page
+  verification rides in the notes → code-task description via `stepDescription`.
+- **Copy approver: Nick Wobig** (all sends). Parent rollup SF ID pending — a
+  reporting rollup only; never add members.
 - RLS: content tables are read = authenticated, write = staff
   (`public.is_staff()`); financials are gated separately.
 

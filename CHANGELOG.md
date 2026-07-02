@@ -3,6 +3,33 @@
 All notable changes to this project are documented here. This project follows
 a cycle-based plan; see [`cycles/`](cycles/).
 
+## Maintenance — 2026-07-02 — THSCA 2026 E3–PS3 load + Jira update sync
+
+Data only (no version bump, no schema/app change). Reconciled the THSCA 2026
+campaign to the E3–PS3 creative brief and pushed the comp/code/send chain to
+Jira **without duplicating** existing MARCOM issues.
+
+- **Campaign:** renamed to `THSCA 2026 — Email`, `utm_campaign_override` locked to
+  `thsca2026` (supersedes the earlier `tx-athletics-2026` assumption — that slug
+  belongs to the separate TX Athletics sequence).
+- **Deliverables:** 5 existing reconciled **in place** (matched old→new
+  `utm_content`, preserving `deliverable_tasks` + `jira_key`s): thsca-e3→E3,
+  thsca-preshow→E4, thsca-midshow→E5, thsca-postshow1→PS1, thsca-postshow2→PS2.
+  Added E1/E2 (status `sent`, `deliver_at` set, **no task rows** → never sync)
+  and PS3. Owners: comp Chris Klett; code + send Tami Roberts.
+- **Jira keys adopted:** 0 (nothing orphaned). **Retained:** MARCOM-87/88/90 (E3),
+  93/98/107 (E4), 113/115/117 (E5/PS1/PS2 sends). **Created:** MARCOM-118–126
+  (E5/PS1/PS2 comp+code, PS3 comp/code/send). Sync rerun = 0 created / 18 updated.
+  Whitney Winkels added as watcher on comp issues.
+- **Scripts:** `seed-thsca-e3-ps3.mjs` (CONFIRM=SEED), `adopt-thsca-jira-keys.mjs`
+  (CONFIRM=ADOPT), `sync-thsca-jira.mjs` (CONFIRM=SYNC). Prop 28 untouched
+  (verified by id diff).
+- **Open (loaded as pending, not invented):** subject locks (Mark/Nick;
+  Subject A loaded as proposed), landing-page URLs (Adam), E5 drawing-close time,
+  PS1 winner name, parent rollup SF ID (Mark), list reaches, sweepstakes
+  official-rules owner (blocks E3). Campaign-level note (copy approver **Nick
+  Wobig**) has no `campaigns.notes` column — recorded here, not stored.
+
 ## [1.8.1] — 2026-07-02 — Deliverable SF auto-populate
 
 - The deliverable editor now **auto-fills SF Campaign ID / Name from the parent
